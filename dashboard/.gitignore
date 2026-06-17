@@ -1,0 +1,5 @@
+# TypeScript incremental build info (written by `tsc -b` / npm run typecheck)
+*.tsbuildinfo
+
+# Build output
+dist/
