@@ -13,7 +13,7 @@ export function LanguageProvider({
     return saved === "fr" || saved === "en" ? saved : defaultLanguage
   })
   useEffect(() => { localStorage.setItem(STORAGE_KEY, language) }, [language])
-  const t = (key: string) => translations[language]?.[key] ?? translations.fr?.[key] ?? key
+  const t = (key: string) => translations[language]?.[key] || translations.fr?.[key] || key
   return (
     <LanguageContext.Provider value={{ language, setLanguage: setLanguageState, t }}>
       {children}
