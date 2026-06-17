@@ -1,4 +1,5 @@
-export const translations = {
+export type Lang = "fr" | "en"
+export const translations: Record<Lang, Record<string, string>> = {
   fr: {
     // Header
     appTitle: 'OVH Cost Manager',
@@ -293,11 +294,11 @@ export const translations = {
     november: 'November',
     december: 'December'
   }
-};
+}
 
-export const monthNames = {
+export const monthNames: Record<Lang, string[]> = {
   fr: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
   en: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-};
+}
 
-export default translations;
+export default translations

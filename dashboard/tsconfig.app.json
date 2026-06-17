@@ -23,5 +23,5 @@
     "types": ["vitest/globals"]
   },
   "include": ["src"],
-  "exclude": ["src/pages/Dashboard.jsx", "src/pages/ProjectProductComparison.jsx"]
+  "exclude": ["src/**/*.jsx"]
 }
