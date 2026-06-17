@@ -20,6 +20,15 @@ export const translations: Record<Lang, Record<string, string>> = {
     compare: 'Comparaison',
     trends: 'Tendances',
 
+    // Nav (Phase 0 redesign)
+    projects: "Projets",
+    byService: "Par service",
+    consumption: "Consommation",
+    billing: "Facturation",
+    costsGroup: "Coûts",
+    opsGroup: "Exploitation",
+    general: "Général",
+
     // KPI Cards
     totalCost: 'Coût total du mois',
     cloudTotal: 'Cloud Total',
@@ -166,6 +175,15 @@ export const translations: Record<Lang, Record<string, string>> = {
     overview: 'Overview',
     compare: 'Compare',
     trends: 'Trends',
+
+    // Nav (Phase 0 redesign)
+    projects: "Projects",
+    byService: "By service",
+    consumption: "Consumption",
+    billing: "Billing",
+    costsGroup: "Costs",
+    opsGroup: "Operations",
+    general: "General",
 
     // KPI Cards
     totalCost: 'Total monthly cost',
