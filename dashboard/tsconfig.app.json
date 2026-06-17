@@ -19,7 +19,8 @@
     "allowJs": true,
     "checkJs": false,
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@/*": ["./src/*"] },
+    "types": ["vitest/globals"]
   },
   "include": ["src"],
   "exclude": ["src/pages/Dashboard.jsx", "src/pages/ProjectProductComparison.jsx"]
