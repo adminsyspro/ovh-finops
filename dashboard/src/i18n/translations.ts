@@ -121,6 +121,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     expiringSoon: 'Expirations proches',
     expiringIn: 'Expire dans',
     days: 'jours',
+    expired: 'Expiré',
     noExpirations: 'Aucune expiration proche',
 
     // Cloud details (Phase 4)
@@ -277,6 +278,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     expiringSoon: 'Expiring soon',
     expiringIn: 'Expires in',
     days: 'days',
+    expired: 'Expired',
     noExpirations: 'No upcoming expirations',
 
     // Cloud details (Phase 4)

@@ -16,13 +16,14 @@ function typeKey(type: string): string {
 
 export function ExpiringAlerts({ services }: { services: ExpiringService[] }) {
   const { t } = useLanguage()
+  const sorted = [...services].sort((a, b) => a.expiration_date.localeCompare(b.expiration_date))
   return (
     <SectionCard title={t("expiringSoon")}>
       {services.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("noExpirations")}</p>
       ) : (
         <ul className="divide-y">
-          {services.slice(0, 5).map((s) => {
+          {sorted.slice(0, 5).map((s) => {
             const left = daysUntil(s.expiration_date)
             return (
               <li key={s.id} className="flex items-center justify-between gap-3 py-2">
@@ -31,7 +32,7 @@ export function ExpiringAlerts({ services }: { services: ExpiringService[] }) {
                   <span className="truncate text-sm">{s.display_name || s.id}</span>
                 </div>
                 <span className={cn("shrink-0 text-sm", left <= 7 ? "text-red-600" : "text-orange-600")}>
-                  {t("expiringIn")} {left} {t("days")}
+                  {left < 0 ? t("expired") : `${t("expiringIn")} ${left} ${t("days")}`}
                 </span>
               </li>
             )
