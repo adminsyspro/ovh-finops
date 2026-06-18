@@ -22,7 +22,9 @@ test("BudgetGauge: > 80% → barre orange, largeur plafonnée à 100%", () => {
   expect(bar.className).toContain("bg-orange-500")
 })
 
-test("BudgetGauge: budget 0 → 0%", () => {
-  wrap(<BudgetGauge used={10} budget={0} />)
-  expect(screen.getByText(/0% used/)).toBeInTheDocument()
+test("BudgetGauge: budget absent → indique non configuré", () => {
+  wrap(<BudgetGauge used={10} budget={null} />)
+  expect(screen.getAllByText(/Not configured/).length).toBeGreaterThan(0)
+  const bar = screen.getByTestId("budget-bar")
+  expect(bar).toHaveStyle({ width: "0%" })
 })

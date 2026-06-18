@@ -13,6 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { formatMoney, trendMonthLabel } from "@/lib/format"
+import { CalendarDotsIcon } from "@phosphor-icons/react/dist/csr/CalendarDots"
+import { SparkleIcon } from "@phosphor-icons/react/dist/csr/Sparkle"
+import { TrendUpIcon } from "@phosphor-icons/react/dist/csr/TrendUp"
 
 const PERIOD_OPTIONS = [3, 6, 12, 24, 36] as const
 
@@ -105,17 +108,20 @@ export function Trends() {
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-3">
         <KpiCard
+          icon={TrendUpIcon}
           label={t("periodGrowth")}
           value={`${t("overLast")} ${months} ${t("lastMonths")}`}
           delta={growth}
           deltaLabel=""
         />
         <KpiCard
+          icon={CalendarDotsIcon}
           label={t("mostExpensiveMonth")}
           value={peakLabel}
           sublabel={formatMoney(peakCost, language, currency)}
         />
         <KpiCard
+          icon={SparkleIcon}
           label={t("annualProjection")}
           value={`~${formatMoney((last?.cost ?? 0) * 12, language, currency)}`}
           sublabel={t("basedOnLastMonth")}

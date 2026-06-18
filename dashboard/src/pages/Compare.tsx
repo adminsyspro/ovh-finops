@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/select"
 import { formatMoney, formatMonthLabel } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar"
+import { GitDiffIcon } from "@phosphor-icons/react/dist/csr/GitDiff"
 
 function CompareSkeleton() {
   return (
@@ -267,16 +269,19 @@ export function Compare() {
       {/* KPI row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <KpiCard
+          icon={CalendarIcon}
           label={t("monthA")}
           value={formatMoney(tA, language, currency)}
           sublabel={a ? formatMonthLabel(a.value, language) : undefined}
         />
         <KpiCard
+          icon={CalendarIcon}
           label={t("monthB")}
           value={formatMoney(tB, language, currency)}
           sublabel={b ? formatMonthLabel(b.value, language) : undefined}
         />
         <KpiCard
+          icon={GitDiffIcon}
           label={t("variation")}
           value={formatMoney(tB - tA, language, currency)}
           delta={variation}

@@ -13,6 +13,10 @@ import { DataTable } from "@/components/DataTable"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
+import { ChartPieSliceIcon } from "@phosphor-icons/react/dist/csr/ChartPieSlice"
+import { StackIcon } from "@phosphor-icons/react/dist/csr/Stack"
+import { TreeStructureIcon } from "@phosphor-icons/react/dist/csr/TreeStructure"
+import { WalletIcon } from "@phosphor-icons/react/dist/csr/Wallet"
 
 function ServicesSkeleton() {
   return (
@@ -135,22 +139,26 @@ export function Services() {
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
+          icon={WalletIcon}
           label={t("totalCost")}
           value={formatMoney(totalCost, language, currency)}
           sublabel={`${billingLines} ${t("billingLines")}`}
           accent
         />
         <KpiCard
+          icon={ChartPieSliceIcon}
           label={t("topService")}
           value={topService?.name ?? "—"}
           sublabel={topService ? formatMoney(topService.value, language, currency) : undefined}
         />
         <KpiCard
+          icon={TreeStructureIcon}
           label={t("serviceFamilies")}
           value={String(serviceRows.length)}
           sublabel={`${resourceRows.length} ${t("resourceType").toLowerCase()}`}
         />
         <KpiCard
+          icon={StackIcon}
           label={t("trackedResources")}
           value={String(trackedResources)}
           sublabel={topResource ? `${t("topResourceType")}: ${topResource.name}` : undefined}

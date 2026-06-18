@@ -11,7 +11,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     trendsDescription: 'Évolution historique des coûts et projections sur plusieurs mois.',
     consumptionDescription: 'Consommation courante, prévision de fin de mois et solde du compte.',
     inventoryDescription: 'Inventaire opérationnel des ressources OVHcloud et services à échéance.',
+    bareMetalDescription: 'Vue opérationnelle et financière des ressources Bare Metal, VPS et stockage.',
     billingDescription: 'Suivi des factures, paiements et détails des lignes de facturation.',
+    profileDescription: 'Gestion des informations du compte connecté.',
+    usersDescription: 'Gestion des utilisateurs locaux autorisés à accéder au dashboard.',
     export: 'Export',
     choose: 'Choisir...',
     markdown: 'Markdown',
@@ -34,9 +37,13 @@ export const translations: Record<Lang, Record<string, string>> = {
     projects: "Projets",
     byService: "Par service",
     consumption: "Consommation",
+    bareMetal: 'Bare Metal',
     billing: "Facturation",
+    profile: 'Profil',
+    users: 'Utilisateurs',
     costsGroup: "Coûts",
     opsGroup: "Exploitation",
+    accountGroup: 'Compte',
     general: "Général",
 
     // KPI Cards
@@ -54,12 +61,24 @@ export const translations: Record<Lang, Record<string, string>> = {
     withConsumption: 'avec consommation',
     vsPreviousMonth: 'vs mois précédent',
     noPreviousData: 'Pas de données précédentes',
+    username: 'Utilisateur',
+    email: 'Email',
+    role: 'Rôle',
+    password: 'Mot de passe',
+    newPassword: 'Nouveau mot de passe',
+    createUser: 'Créer un utilisateur',
+    create: 'Créer',
+    save: 'Enregistrer',
+    saved: 'Enregistré',
+    saveError: 'Erreur lors de l\'enregistrement',
+    delete: 'Supprimer',
 
     // Budget
     budgetConsumption: 'Consommation du budget',
     used: 'utilisé',
     consumed: 'Consommé',
     budget: 'Budget',
+    budgetNotConfigured: 'Non défini',
 
     // Overview
     serviceBreakdown: 'Répartition par service',
@@ -112,6 +131,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 
     // Consumption (Phase 1)
     currentConsumption: 'Consommation en cours',
+    cloudConsumption: 'Consommation Cloud',
     forecastEndOfMonth: 'Prévision fin de mois',
     selectedPeriod: 'Période sélectionnée',
     consumptionProgress: 'Progression',
@@ -156,6 +176,12 @@ export const translations: Record<Lang, Record<string, string>> = {
     days: 'jours',
     expired: 'Expiré',
     noExpirations: 'Aucune expiration proche',
+    bareMetalInventory: 'Inventaire Bare Metal',
+    bareMetalCost: 'Coût Bare Metal',
+    bareMetalCostBreakdown: 'Répartition des coûts Bare Metal',
+    bareMetalExpirations: 'Échéances Bare Metal',
+    next30Days: '30 prochains jours',
+    active: 'Actif',
 
     // Cloud details (Phase 4)
     instances: 'Instances',
@@ -204,7 +230,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     trendsDescription: 'Historical cost evolution and multi-month projections.',
     consumptionDescription: 'Current usage, end-of-month forecast, and account balance.',
     inventoryDescription: 'Operational inventory for OVHcloud resources and expiring services.',
+    bareMetalDescription: 'Operational and financial view of Bare Metal, VPS, and storage resources.',
     billingDescription: 'Invoices, payments, and billing line details.',
+    profileDescription: 'Manage the signed-in account information.',
+    usersDescription: 'Manage local users allowed to access the dashboard.',
     export: 'Export',
     choose: 'Choose...',
     markdown: 'Markdown',
@@ -227,9 +256,13 @@ export const translations: Record<Lang, Record<string, string>> = {
     projects: "Projects",
     byService: "By service",
     consumption: "Consumption",
+    bareMetal: 'Bare Metal',
     billing: "Billing",
+    profile: 'Profile',
+    users: 'Users',
     costsGroup: "Costs",
     opsGroup: "Operations",
+    accountGroup: 'Account',
     general: "General",
 
     // KPI Cards
@@ -247,12 +280,24 @@ export const translations: Record<Lang, Record<string, string>> = {
     withConsumption: 'with consumption',
     vsPreviousMonth: 'vs previous month',
     noPreviousData: 'No previous data',
+    username: 'Username',
+    email: 'Email',
+    role: 'Role',
+    password: 'Password',
+    newPassword: 'New password',
+    createUser: 'Create user',
+    create: 'Create',
+    save: 'Save',
+    saved: 'Saved',
+    saveError: 'Save failed',
+    delete: 'Delete',
 
     // Budget
     budgetConsumption: 'Budget consumption',
     used: 'used',
     consumed: 'Consumed',
     budget: 'Budget',
+    budgetNotConfigured: 'Not configured',
 
     // Overview
     serviceBreakdown: 'Breakdown by service',
@@ -305,6 +350,7 @@ export const translations: Record<Lang, Record<string, string>> = {
 
     // Consumption (Phase 1)
     currentConsumption: 'Current consumption',
+    cloudConsumption: 'Cloud consumption',
     forecastEndOfMonth: 'End of month forecast',
     selectedPeriod: 'Selected period',
     consumptionProgress: 'Progress',
@@ -349,6 +395,12 @@ export const translations: Record<Lang, Record<string, string>> = {
     days: 'days',
     expired: 'Expired',
     noExpirations: 'No upcoming expirations',
+    bareMetalInventory: 'Bare Metal inventory',
+    bareMetalCost: 'Bare Metal cost',
+    bareMetalCostBreakdown: 'Bare Metal cost breakdown',
+    bareMetalExpirations: 'Bare Metal expirations',
+    next30Days: 'Next 30 days',
+    active: 'Active',
 
     // Cloud details (Phase 4)
     instances: 'Instances',

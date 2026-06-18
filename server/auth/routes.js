@@ -5,6 +5,7 @@ const express = require('express');
 const { randomState, randomNonce } = require('openid-client');
 const oidcClient = require('./oidc-client');
 const sessionStore = require('./session-store');
+const localUsers = require('./local-users');
 
 const router = express.Router();
 
@@ -13,8 +14,122 @@ const router = express.Router();
 const pendingAuth = new Map();
 const PENDING_AUTH_MAX_SIZE = 1000;
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function safeReturnTo(value) {
+  const returnTo = typeof value === 'string' ? value : '/';
+  return returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
+}
+
+function renderLocalLogin({ error, returnTo }) {
+  const errorBlock = error
+    ? `<div class="error">${escapeHtml(error)}</div>`
+    : '';
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connexion - OVH FinOps</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f8fb; color: #111827; }
+    .panel { width: min(400px, calc(100vw - 32px)); border: 1px solid #d9dee8; border-radius: 12px; background: #fff; padding: 32px; box-shadow: 0 18px 60px rgb(15 23 42 / 12%); }
+    .brand { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .logo { display: block; width: 82px; height: auto; margin-bottom: 18px; color: #000e9c; }
+    h1 { margin: 0; font-size: 24px; line-height: 1.2; letter-spacing: 0; }
+    p { margin: 8px 0 28px; color: #667085; font-size: 14px; }
+    label { display: block; margin: 14px 0 6px; color: #344054; font-size: 13px; font-weight: 600; }
+    input { box-sizing: border-box; width: 100%; height: 40px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 0 12px; font: inherit; background: #fff; color: #111827; }
+    button { width: 100%; height: 40px; margin-top: 20px; border: 0; border-radius: 8px; background: #000e9c; color: white; font: inherit; font-weight: 700; cursor: pointer; }
+    button:hover { background: #0718bd; }
+    .error { margin: 0 0 16px; border: 1px solid #fecaca; border-radius: 8px; background: #fef2f2; color: #b42318; padding: 10px 12px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 1505 909" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="OVH">
+        <path fill="currentColor" fill-rule="evenodd" d="m1407.08 52.27-160.24 283.35h-168.16L880.85 684.34h168.16l-126.62 223.9h413.47c193.88-243.71 223.55-582.53 71.22-855.97M592.01 908.24 1116.27.76H673.13L372.42 523.85 99.41 50.29C-54.9 323.73-27.2 664.53 172.61 908.24z" />
+      </svg>
+      <h1>OVH FinOps</h1>
+      <p>Maitrisez la consommation de vôtre infrastructure.</p>
+    </div>
+    ${errorBlock}
+    <form method="post" action="/auth/login">
+      <input type="hidden" name="returnTo" value="${escapeHtml(safeReturnTo(returnTo))}" />
+      <label for="username">Utilisateur</label>
+      <input id="username" name="username" autocomplete="username" required autofocus />
+      <label for="password">Mot de passe</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+      <button type="submit">Connexion</button>
+    </form>
+  </main>
+</body>
+</html>`;
+}
+
+function setupLocalRoutes(authConfig) {
+  router.get('/login', (req, res) => {
+    res.type('html').send(renderLocalLogin({ returnTo: req.query.returnTo || '/' }));
+  });
+
+  router.post('/login', express.urlencoded({ extended: false }), (req, res) => {
+    const username = String(req.body?.username || '').trim();
+    const password = String(req.body?.password || '');
+    const user = localUsers.authenticate(username, password);
+
+    if (!user) {
+      return res.status(401).type('html').send(renderLocalLogin({
+        error: 'Identifiants invalides',
+        returnTo: req.body?.returnTo || '/'
+      }));
+    }
+
+    const userInfo = {
+      sub: user.username,
+      preferred_username: user.username,
+      name: user.name || user.username,
+      email: user.email || null
+    };
+    const sid = sessionStore.create(user.username, userInfo, {}, null, authConfig.session.maxAge);
+
+    res.cookie(authConfig.session.name, sid, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: authConfig.session.maxAge
+    });
+
+    res.redirect(safeReturnTo(req.body?.returnTo));
+  });
+
+  router.get('/logout', (req, res) => {
+    const sid = req.cookies[authConfig.session.name];
+    if (sid) {
+      sessionStore.remove(sid);
+    }
+    res.clearCookie(authConfig.session.name);
+    res.redirect('/auth/login');
+  });
+
+  return router;
+}
+
 function setup(config) {
   const authConfig = config.auth;
+
+  if (authConfig.type === 'local') {
+    return setupLocalRoutes(authConfig);
+  }
 
   // GET /auth/login - Initiate OIDC flow
   router.get('/login', (req, res) => {

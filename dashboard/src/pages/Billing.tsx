@@ -14,6 +14,10 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
 import type { Bill, BillDetail } from "@/services/api"
+import { BankIcon } from "@phosphor-icons/react/dist/csr/Bank"
+import { MoneyWavyIcon } from "@phosphor-icons/react/dist/csr/MoneyWavy"
+import { ReceiptIcon } from "@phosphor-icons/react/dist/csr/Receipt"
+import { ScalesIcon } from "@phosphor-icons/react/dist/csr/Scales"
 
 function BillingSkeleton() {
   return (
@@ -145,19 +149,23 @@ export function Billing() {
       {/* Account balance KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
+          icon={ScalesIcon}
           label={t("netBalance")}
           value={balanceReady ? formatMoney(netBalance, language, currency) : "—"}
           accent
         />
         <KpiCard
+          icon={MoneyWavyIcon}
           label={t("creditBalance")}
           value={balanceReady ? formatMoney(balance!.credit_balance, language, currency) : "—"}
         />
         <KpiCard
+          icon={ReceiptIcon}
           label={t("debtBalance")}
           value={balanceReady ? formatMoney(balance!.debt_balance, language, currency) : "—"}
         />
         <KpiCard
+          icon={BankIcon}
           label={t("deposits")}
           value={balanceReady ? formatMoney(balance!.deposit_total, language, currency) : "—"}
         />

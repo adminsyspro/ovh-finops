@@ -3,14 +3,18 @@ import { useLanguage } from "@/context/LanguageProvider"
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage()
+  const nextLanguage = language === "fr" ? "en" : "fr"
+  const flag = language === "fr" ? "🇫🇷" : "🇬🇧"
   return (
     <Button
       variant="outline"
-      size="sm"
-      className="h-8 bg-card px-2.5 text-xs"
-      onClick={() => setLanguage(language === "fr" ? "en" : "fr")}
+      size="icon-sm"
+      className="bg-card text-base leading-none"
+      aria-label={language === "fr" ? "Changer la langue en anglais" : "Switch language to French"}
+      title={language === "fr" ? "Français" : "English"}
+      onClick={() => setLanguage(nextLanguage)}
     >
-      {language.toUpperCase()}
+      <span aria-hidden="true">{flag}</span>
     </Button>
   )
 }

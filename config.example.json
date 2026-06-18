@@ -7,7 +7,6 @@
   },
   "dataDir": "/app/data",
   "dashboard": {
-    "budget": 50000,
     "currency": "EUR",
     "language": "fr"
   },
@@ -24,7 +23,15 @@
     }
   },
   "auth": {
-    "enabled": false,
+    "enabled": true,
+    "type": "local",
+    "users": [
+      {
+        "username": "admin",
+        "password": "admin",
+        "name": "Administrator"
+      }
+    ],
     "provider": {
       "issuer": "https://auth.example.com",
       "clientId": "YOUR_CLIENT_ID",

@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
 import { cn } from "@/lib/utils"
+import { HardDrivesIcon } from "@phosphor-icons/react/dist/csr/HardDrives"
 
 const CHART_COLORS = [
   "var(--chart-1)",
@@ -192,6 +193,7 @@ export function ProjectDetail() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <h1 className="text-2xl font-semibold">{projectName}</h1>
         <KpiCard
+          icon={HardDrivesIcon}
           label={t("monthlyBilling")}
           value={formatMoney(instanceTotalQuery.data?.total ?? 0, language, currency)}
         />

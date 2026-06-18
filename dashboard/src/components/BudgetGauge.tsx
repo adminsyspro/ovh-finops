@@ -8,18 +8,19 @@ export function BudgetGauge({
   used, budget, currency = "EUR",
 }: {
   used: number
-  budget: number
+  budget?: number | null
   currency?: string
 }) {
   const { t, language } = useLanguage()
-  const pct = budget > 0 ? (used / budget) * 100 : 0
+  const hasBudget = typeof budget === "number" && budget > 0
+  const pct = hasBudget ? (used / budget) * 100 : 0
   const over = pct > 80
   return (
     <SectionCard
       title={t("budgetConsumption")}
       actions={
         <Badge variant={over ? "destructive" : "secondary"}>
-          {Math.round(pct)}% {t("used")}
+          {hasBudget ? `${Math.round(pct)}% ${t("used")}` : t("budgetNotConfigured")}
         </Badge>
       }
     >
@@ -32,7 +33,7 @@ export function BudgetGauge({
       </div>
       <div className="mt-3 flex justify-between text-sm text-muted-foreground">
         <span>{t("consumed")}: {formatMoney(used, language, currency)}</span>
-        <span>{t("budget")}: {formatMoney(budget, language, currency)}</span>
+        <span>{t("budget")}: {hasBudget ? formatMoney(budget, language, currency) : t("budgetNotConfigured")}</span>
       </div>
     </SectionCard>
   )

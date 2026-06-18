@@ -18,7 +18,7 @@ const CONFIG_PATHS = [
   path.resolve(os.homedir(), 'my-ovh-bills', 'config.json')
 ];
 
-let config = { dashboard: { budget: 50000, currency: 'EUR' } };
+let config = { dashboard: { currency: 'EUR' } };
 
 for (const configPath of CONFIG_PATHS) {
   try {
@@ -178,10 +178,12 @@ async function initializeServer() {
       : [auth.setupRoutes(authConfig)];
     app.use('/auth', ...authMiddleware);
 
-    // Back-channel logout endpoint
-    app.post('/logout/backchannel', express.urlencoded({ extended: false }), (req, res) => {
-      auth.backChannelLogout(req, res, authConfig);
-    });
+    if (authConfig.auth?.type === 'oidc') {
+      // Back-channel logout endpoint
+      app.post('/logout/backchannel', express.urlencoded({ extended: false }), (req, res) => {
+        auth.backChannelLogout(req, res, authConfig);
+      });
+    }
 
     // OIDC authentication middleware
     app.use(auth.createAuthMiddleware(authConfig));
@@ -265,8 +267,12 @@ async function initializeServer() {
       console.log(`   Rate limiting: disabled`);
     }
 
-    if (authConfig.auth?.enabled) {
+    if (authConfig.auth?.enabled && authConfig.auth?.type === 'oidc') {
       console.log(`   OIDC authentication enabled`);
+      console.log(`   Login: /auth/login`);
+      console.log(`   Logout: /auth/logout`);
+    } else if (authConfig.auth?.enabled && authConfig.auth?.type === 'local') {
+      console.log(`   Local authentication enabled`);
       console.log(`   Login: /auth/login`);
       console.log(`   Logout: /auth/logout`);
     }
@@ -692,8 +698,9 @@ function registerRoutes() {
   // ========================
 
   app.get('/api/config', (req, res) => {
+    const configuredBudget = config.dashboard?.budget;
     res.json({
-      budget: config.dashboard?.budget || 50000,
+      budget: Number.isFinite(configuredBudget) ? configuredBudget : null,
       currency: config.dashboard?.currency || 'EUR'
     });
   });
@@ -706,10 +713,97 @@ function registerRoutes() {
     const response = req.user || { id: null, name: 'Anonymous', email: null };
     // Add auth info for frontend
     response.authEnabled = authConfig.auth?.enabled || false;
+    response.authType = authConfig.auth?.type || null;
     if (authConfig.auth?.enabled && !req.user) {
       response.loginUrl = '/auth/login';
     }
     res.json(response);
+  });
+
+  function requireLocalAuth(req, res) {
+    if (!authConfig.auth?.enabled || authConfig.auth?.type !== 'local') {
+      res.status(404).json({ error: 'Local authentication is not enabled' });
+      return false;
+    }
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Authentication required', loginUrl: '/auth/login' });
+      return false;
+    }
+    return true;
+  }
+
+  app.get('/api/auth/profile', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    const user = auth.localUsers.get(req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+  });
+
+  app.put('/api/auth/profile', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      const updated = auth.localUsers.update(req.user.id, {
+        name: req.body?.name,
+        email: req.body?.email,
+        password: req.body?.password
+      });
+      if (!updated) return res.status(404).json({ error: 'User not found' });
+      res.json(updated);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/auth/users', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    res.json(auth.localUsers.list());
+  });
+
+  app.post('/api/auth/users', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      const created = auth.localUsers.create({
+        username: req.body?.username,
+        password: req.body?.password,
+        name: req.body?.name,
+        email: req.body?.email,
+        role: req.body?.role || 'admin'
+      });
+      res.status(201).json(created);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.put('/api/auth/users/:username', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      const updated = auth.localUsers.update(req.params.username, {
+        name: req.body?.name,
+        email: req.body?.email,
+        role: req.body?.role,
+        password: req.body?.password
+      });
+      if (!updated) return res.status(404).json({ error: 'User not found' });
+      res.json(updated);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.delete('/api/auth/users/:username', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    if (req.params.username === req.user.id) {
+      return res.status(400).json({ error: 'Cannot delete the current user' });
+    }
+    try {
+      const deleted = auth.localUsers.remove(req.params.username);
+      if (!deleted) return res.status(404).json({ error: 'User not found' });
+      auth.sessionStore.deleteByUserId(req.params.username);
+      res.status(204).end();
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
   });
 
   // ========================

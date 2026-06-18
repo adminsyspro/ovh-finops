@@ -61,14 +61,31 @@ Renseigner les credentials OVH :
   },
   "dataDir": "/app/data",
   "dashboard": {
-    "budget": 50000,
     "currency": "EUR",
     "language": "fr"
+  },
+  "auth": {
+    "enabled": true,
+    "type": "local",
+    "users": [
+      {
+        "username": "admin",
+        "password": "admin",
+        "name": "Administrator"
+      }
+    ],
+    "session": {
+      "secret": "CHANGE_THIS_TO_A_RANDOM_SECRET",
+      "maxAge": 86400000,
+      "name": "ocm.sid"
+    }
   }
 }
 ```
 
 `DATA_DIR` peut aussi etre fourni par variable d'environnement. Il prend le dessus sur `dataDir`.
+Le budget du dashboard est optionnel. Ajoutez `"budget": 50000` dans `dashboard` uniquement si vous souhaitez afficher une jauge de suivi budgetaire.
+L'authentification locale est activee par defaut avec `admin/admin`. Changez ce mot de passe et `session.secret` avant toute exposition reseau.
 
 ### Droits API conseilles
 
@@ -265,7 +282,7 @@ Pour une mise en production :
 - persister le volume `ocm-data` ;
 - activer `TRUST_PROXY=true` derriere un reverse proxy ;
 - ajuster `RATE_LIMIT_*` selon le contexte ;
-- proteger l'acces avec OIDC/SSO ou un reverse proxy d'entreprise ;
+- remplacer le compte local `admin/admin` ou proteger l'acces avec OIDC/SSO ;
 - planifier un import periodique avec `IMPORT_FLAGS=--all`.
 
 ## Licence

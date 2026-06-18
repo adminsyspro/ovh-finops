@@ -1,13 +1,12 @@
 import { Link, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, FolderTree, PieChart, GitCompare, TrendingUp,
-  Activity, Server, Receipt, Sparkles,
+  HardDrive, Server, Receipt, User, Users,
 } from "lucide-react"
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
+  SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar"
-import { Badge } from "@/components/ui/badge"
 import { useLanguage } from "@/context/LanguageProvider"
 import { Logo } from "@/components/Logo"
 
@@ -17,15 +16,18 @@ export const NAV_ITEMS = [
   { titleKey: "byService", path: "/costs/services", icon: PieChart, group: "costs" },
   { titleKey: "compare", path: "/compare", icon: GitCompare, group: "costs" },
   { titleKey: "trends", path: "/trends", icon: TrendingUp, group: "costs" },
-  { titleKey: "consumption", path: "/consumption", icon: Activity, group: "ops" },
   { titleKey: "inventory", path: "/inventory", icon: Server, group: "ops" },
+  { titleKey: "bareMetal", path: "/bare-metal", icon: HardDrive, group: "ops" },
   { titleKey: "billing", path: "/bills", icon: Receipt, group: "ops" },
+  { titleKey: "profile", path: "/profile", icon: User, group: "account" },
+  { titleKey: "users", path: "/users", icon: Users, group: "account" },
 ] as const
 
 const GROUPS: { id: string; labelKey: string }[] = [
   { id: "main", labelKey: "general" },
   { id: "costs", labelKey: "costsGroup" },
   { id: "ops", labelKey: "opsGroup" },
+  { id: "account", labelKey: "accountGroup" },
 ]
 
 /** Active-route match: exact for "/", prefix for the rest (so /projects/:id matches "Projets"). */
@@ -81,16 +83,6 @@ export function AppSidebar() {
           </SidebarGroup>
         ))}
       </SidebarContent>
-      <SidebarFooter className="px-3 pb-3 group-data-[collapsible=icon]:hidden">
-        <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/45 p-3">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Sparkles className="size-4 text-primary" />
-            <span>FinOps</span>
-            <Badge variant="secondary" className="ml-auto rounded-md px-1.5 text-[11px]">v2</Badge>
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">{t("syncedVia")}</p>
-        </div>
-      </SidebarFooter>
     </Sidebar>
   )
 }

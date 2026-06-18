@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   fetchMonths, fetchConfig, fetchSummary, fetchByService, fetchByProject,
   fetchByResourceType, fetchExpiringServices,
@@ -8,7 +8,8 @@ import {
   fetchConsumptionCurrent, fetchConsumptionForecast, fetchConsumptionHistory,
   fetchInventoryServers, fetchInventoryVps, fetchInventoryStorage, fetchInventorySummary,
   fetchBills, fetchBillDetails, fetchBillPayment,
-  fetchAccountBalance, fetchAccountCredits, fetchAccountDebts,
+  fetchAccountBalance, fetchAccountCredits, fetchAccountDebts, fetchUser,
+  fetchAuthProfile, updateAuthProfile, fetchLocalUsers, createLocalUser, updateLocalUser, deleteLocalUser,
 } from "@/services/api"
 
 export function useMonths() {
@@ -17,6 +18,54 @@ export function useMonths() {
 
 export function useConfig() {
   return useQuery({ queryKey: ["config"], queryFn: fetchConfig })
+}
+
+export function useUser() {
+  return useQuery({ queryKey: ["user"], queryFn: fetchUser, staleTime: 60 * 1000 })
+}
+
+export function useAuthProfile() {
+  return useQuery({ queryKey: ["authProfile"], queryFn: fetchAuthProfile })
+}
+
+export function useUpdateAuthProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updateAuthProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["authProfile"] })
+      queryClient.invalidateQueries({ queryKey: ["user"] })
+    },
+  })
+}
+
+export function useLocalUsers() {
+  return useQuery({ queryKey: ["localUsers"], queryFn: fetchLocalUsers })
+}
+
+export function useCreateLocalUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createLocalUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["localUsers"] }),
+  })
+}
+
+export function useUpdateLocalUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ username, payload }: { username: string; payload: Parameters<typeof updateLocalUser>[1] }) =>
+      updateLocalUser(username, payload),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["localUsers"] }),
+  })
+}
+
+export function useDeleteLocalUser() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: deleteLocalUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["localUsers"] }),
+  })
 }
 
 export function useSummary(from: string | null | undefined, to: string | null | undefined) {

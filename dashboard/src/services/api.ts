@@ -33,7 +33,7 @@ export interface ServiceBreakdown { name: string; value: number; color: string; 
 export interface ProjectBreakdown { projectId: string; projectName: string; total: number; detailsCount: number }
 export interface ResourceTypeBreakdown { name: string; resource_type: string; value: number; color: string; detailsCount: number; serviceCount: number }
 export interface ExpiringService { id: string; display_name: string; type: string; expiration_date: string }
-export interface AppConfig { budget: number; currency: string }
+export interface AppConfig { budget: number | null; currency: string }
 
 // Phase-3 interfaces (Consumption / Inventory / Billing)
 export interface ConsumptionCurrent { snapshot_date?: string; period_start?: string | null; period_end?: string | null; current_total: number; currency: string; source?: string; project_count?: number; details?: unknown }
@@ -49,6 +49,8 @@ export interface BillPayment { bill_id: string; payment_type: string | null; pay
 export interface AccountBalance { snapshot_date?: string; debt_balance: number; credit_balance: number; deposit_total: number; net_balance?: number; currency: string }
 export interface CreditMovement { id: string; balance_name: string; amount: number; date: string; description: string; movement_type: string; imported_at: string }
 export interface AccountDebts { debt_balance: number; currency: string }
+export interface LocalUser { username: string; name: string; email: string | null; role: string; created_at: string; updated_at: string }
+export interface LocalUserPayload { username?: string; password?: string; name?: string; email?: string; role?: string }
 
 // Phase-2 interfaces (Coûts data layer)
 export interface EnrichedProject { id: string; name: string; description: string | null; status: string | null; instance_count: number; consumption_total: number; period_start: string | null; period_end: string | null }
@@ -118,6 +120,35 @@ export const fetchConfig = async (): Promise<AppConfig> => {
 export const fetchUser = async (): Promise<any> => {
   const { data } = await api.get('/user')
   return data
+}
+
+export const fetchAuthProfile = async (): Promise<LocalUser> => {
+  const { data } = await api.get('/auth/profile')
+  return data
+}
+
+export const updateAuthProfile = async (payload: LocalUserPayload): Promise<LocalUser> => {
+  const { data } = await api.put('/auth/profile', payload)
+  return data
+}
+
+export const fetchLocalUsers = async (): Promise<LocalUser[]> => {
+  const { data } = await api.get('/auth/users')
+  return data
+}
+
+export const createLocalUser = async (payload: LocalUserPayload): Promise<LocalUser> => {
+  const { data } = await api.post('/auth/users', payload)
+  return data
+}
+
+export const updateLocalUser = async (username: string, payload: LocalUserPayload): Promise<LocalUser> => {
+  const { data } = await api.put(`/auth/users/${encodeURIComponent(username)}`, payload)
+  return data
+}
+
+export const deleteLocalUser = async (username: string): Promise<void> => {
+  await api.delete(`/auth/users/${encodeURIComponent(username)}`)
 }
 
 // Phase 1: Consumption

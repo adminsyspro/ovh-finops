@@ -4,7 +4,40 @@ import { LanguageProvider } from "@/context/LanguageProvider"
 
 const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
 
+vi.mock("@/hooks/useSelectedMonth", () => ({
+  useSelectedMonth: () => ({
+    monthsQuery: { isLoading: false, isError: false },
+    months: [{ value: "year:2026", from: "2026-01-01", to: "2026-12-31" }],
+    selected: { value: "year:2026", from: "2026-01-01", to: "2026-12-31", kind: "year" },
+    previous: null,
+    from: "2026-01-01",
+    to: "2026-12-31",
+  }),
+}))
+
 vi.mock("@/hooks/queries", () => ({
+  useConsumptionCurrent: vi.fn(() =>
+    ok({
+      current_total: 1234.5,
+      currency: "EUR",
+      source: "cloud_projects",
+      project_count: 3,
+    }),
+  ),
+  useConsumptionForecast: vi.fn(() =>
+    ok({
+      forecast_total: 2000,
+      current_total: 1234.5,
+      currency: "EUR",
+      progress: 61,
+    }),
+  ),
+  useConsumptionHistory: vi.fn(() =>
+    ok([
+      { period_start: "2026-05-01", period_end: "2026-05-31", total: 500, currency: "EUR", service_type: "compute" },
+      { period_start: "2026-05-01", period_end: "2026-05-31", total: 200, currency: "EUR", service_type: "storage" },
+    ]),
+  ),
   useInventorySummary: vi.fn(() =>
     ok({ servers: 3, vps: 5, storage: 2, cloud_projects: 4, total: 14, expiring_soon: 1 }),
   ),
@@ -85,6 +118,14 @@ test("Inventory page: renders 'Serveurs dédiés' tab trigger", () => {
 test("Inventory page: active tab (servers) shows 'ns1' row", () => {
   wrap(<Inventory />)
   expect(screen.getByText("ns1")).toBeInTheDocument()
+})
+
+test("Inventory page: renders integrated cloud consumption block", () => {
+  wrap(<Inventory />)
+  expect(screen.getByText("Consommation Cloud")).toBeInTheDocument()
+  expect(screen.getByText("Consommation en cours")).toBeInTheDocument()
+  expect(screen.getByText(/Public Cloud · 3/)).toBeInTheDocument()
+  expect(screen.getByText("Historique de consommation")).toBeInTheDocument()
 })
 
 test("Inventory page: renders VPS tab trigger", () => {
