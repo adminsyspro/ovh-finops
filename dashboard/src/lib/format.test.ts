@@ -28,3 +28,9 @@ test("trendMonthLabel: court + langue", () => {
   expect(trendMonthLabel("2026-05", "en")).toBe("May 26")
   expect(trendMonthLabel("2026-01", "fr")).toBe("Jan 26")
 })
+
+test("trendMonthLabel: Juin et Juillet distincts en français", () => {
+  expect(trendMonthLabel("2026-06", "fr")).toBe("Juin 26")
+  expect(trendMonthLabel("2026-07", "fr")).toBe("Juil 26")
+  expect(trendMonthLabel("2026-06", "fr")).not.toBe(trendMonthLabel("2026-07", "fr"))
+})

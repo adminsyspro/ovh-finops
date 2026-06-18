@@ -1,4 +1,4 @@
-import { monthNames, type Lang } from "@/i18n/translations"
+import { monthNames, monthNamesShort, type Lang } from "@/i18n/translations"
 
 const CURRENCY_SYMBOLS: Record<string, string> = { EUR: "€", USD: "$", GBP: "£" }
 
@@ -31,6 +31,6 @@ export function formatMonthLabel(value: string, lang: Lang): string {
 
 export function trendMonthLabel(yearMonth: string, lang: Lang): string {
   const [year, month] = yearMonth.split("-")
-  const name = (monthNames[lang][Number(month) - 1] ?? month).slice(0, 3)
+  const name = monthNamesShort[lang][Number(month) - 1] ?? month
   return `${name} ${year.slice(2)}`
 }
