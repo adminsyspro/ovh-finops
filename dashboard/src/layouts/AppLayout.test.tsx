@@ -23,7 +23,8 @@ test("rend la sidebar et la page d'accueil", () => {
       </ThemeProvider>
     </QueryClientProvider>,
   )
-  expect(screen.getByText("Page à implémenter (phase suivante).")).toBeInTheDocument()
+  // Index route now renders Overview (with loading skeleton when selectedMonth is null)
+  expect(screen.queryByText("Page à implémenter (phase suivante).")).not.toBeInTheDocument()
   expect(screen.getByText("Tendances")).toBeInTheDocument() // entrée de nav
 })
 

@@ -1,13 +1,14 @@
 import { type RouteObject } from "react-router-dom"
 import { AppLayout } from "@/layouts/AppLayout"
 import { Placeholder } from "@/pages/_Placeholder"
+import { Overview } from "@/pages/Overview"
 
 export const routes: RouteObject[] = [
   {
     path: "/",
     element: <AppLayout />,
     children: [
-      { index: true, element: <Placeholder title="Vue d'ensemble" /> },
+      { index: true, element: <Overview /> },
       { path: "projects", element: <Placeholder title="Projets" /> },
       { path: "projects/:id", element: <Placeholder title="Détail projet" /> },
       { path: "costs/services", element: <Placeholder title="Par service" /> },
