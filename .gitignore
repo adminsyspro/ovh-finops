@@ -40,6 +40,9 @@ npm-debug.log*
 *.db-shm
 *.db-wal
 
+# Local agent planning/spec docs — keep untracked, never publish
+docs/superpowers/
+
 # Auto Claude data directory
 .auto-claude/
 
