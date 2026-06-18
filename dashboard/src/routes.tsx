@@ -3,6 +3,7 @@ import { AppLayout } from "@/layouts/AppLayout"
 import { Placeholder } from "@/pages/_Placeholder"
 import { Overview } from "@/pages/Overview"
 import { Trends } from "@/pages/Trends"
+import { Projects } from "@/pages/Projects"
 
 export const routes: RouteObject[] = [
   {
@@ -10,7 +11,7 @@ export const routes: RouteObject[] = [
     element: <AppLayout />,
     children: [
       { index: true, element: <Overview /> },
-      { path: "projects", element: <Placeholder title="Projets" /> },
+      { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <Placeholder title="Détail projet" /> },
       { path: "costs/services", element: <Placeholder title="Par service" /> },
       { path: "compare", element: <Placeholder title="Comparaison" /> },
