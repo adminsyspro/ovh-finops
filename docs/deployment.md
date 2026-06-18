@@ -48,13 +48,13 @@ docker-compose up -d --build
 
 ```bash
 # Full import (all historical data)
-docker exec ovh-cost-manager node data/import.js --full
+docker exec ovh-finops node data/import.js --full
 
 # Or import specific period
-docker exec ovh-cost-manager node data/import.js --from 2025-01-01 --to 2025-12-31
+docker exec ovh-finops node data/import.js --from 2025-01-01 --to 2025-12-31
 
 # Differential import (new data since last import)
-docker exec ovh-cost-manager node data/import.js --diff
+docker exec ovh-finops node data/import.js --diff
 ```
 
 ### 4. Access the dashboard
@@ -133,7 +133,7 @@ docker-compose -f docker-compose.yml -f docker-compose.sso.yml up -d --build
 ### 3. Import billing data
 
 ```bash
-docker exec ovh-cost-manager node data/import.js --from 2025-01-01 --to 2025-12-31
+docker exec ovh-finops node data/import.js --from 2025-01-01 --to 2025-12-31
 ```
 
 ### 4. Access the services
@@ -149,7 +149,7 @@ docker exec ovh-cost-manager node data/import.js --from 2025-01-01 --to 2025-12-
 
 | Container          | Image                    | Purpose              |
 | ------------------ | ------------------------ | -------------------- |
-| `ovh-cost-manager` | Custom (Dockerfile)      | Application server   |
+| `ovh-finops` | Custom (Dockerfile)      | Application server   |
 | `lemonldap`        | yadd/lemonldap-ng-portal | SSO Portal & Handler |
 | `traefik`          | traefik:v2.10            | Reverse proxy        |
 
