@@ -142,11 +142,11 @@ export function ProjectDetail() {
   const bucketColumns: ColumnDef<ProjectBucket>[] = [
     {
       accessorKey: "name",
-      header: t("instances"), // name column — reuse generic label; no dedicated "bucketName" key
+      header: t("name"),
     },
     {
       accessorKey: "type",
-      header: "Type",
+      header: t("type"),
       cell: ({ row }) => <Badge variant="outline">{row.original.type}</Badge>,
     },
     {
@@ -263,7 +263,7 @@ export function ProjectDetail() {
       </SectionCard>
 
       {/* ── Buckets ─────────────────────────────────────────────────────── */}
-      <SectionCard title="Buckets">
+      <SectionCard title={t("buckets")}>
         <DataTable<ProjectBucket, unknown>
           columns={bucketColumns}
           data={bucketsQuery.data ?? []}

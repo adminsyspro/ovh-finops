@@ -137,6 +137,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     usedOf: 'utilisé sur',
     cores: 'Cores',
     ram: 'RAM',
+    buckets: 'Buckets',
+    type: 'Type',
+    name: 'Nom',
 
     // GPU
     gpuCosts: 'Coûts GPU',
@@ -298,6 +301,9 @@ export const translations: Record<Lang, Record<string, string>> = {
     usedOf: 'used of',
     cores: 'Cores',
     ram: 'RAM',
+    buckets: 'Buckets',
+    type: 'Type',
+    name: 'Name',
 
     // GPU
     gpuCosts: 'GPU Costs',
