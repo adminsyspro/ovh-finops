@@ -49,6 +49,9 @@ export function Billing() {
     )
   }
 
+  const balanceReady =
+    !balanceQuery.isLoading && !balanceQuery.isError && balanceQuery.data != null
+
   const balance = balanceQuery.data
   const currency = balance?.currency ?? "EUR"
 
@@ -143,20 +146,20 @@ export function Billing() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label={t("netBalance")}
-          value={formatMoney(netBalance, language, currency)}
+          value={balanceReady ? formatMoney(netBalance, language, currency) : "—"}
           accent
         />
         <KpiCard
           label={t("creditBalance")}
-          value={formatMoney(balance?.credit_balance ?? 0, language, currency)}
+          value={balanceReady ? formatMoney(balance!.credit_balance, language, currency) : "—"}
         />
         <KpiCard
           label={t("debtBalance")}
-          value={formatMoney(balance?.debt_balance ?? 0, language, currency)}
+          value={balanceReady ? formatMoney(balance!.debt_balance, language, currency) : "—"}
         />
         <KpiCard
           label={t("deposits")}
-          value={formatMoney(balance?.deposit_total ?? 0, language, currency)}
+          value={balanceReady ? formatMoney(balance!.deposit_total, language, currency) : "—"}
         />
       </div>
 
