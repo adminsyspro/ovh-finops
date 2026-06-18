@@ -1,10 +1,10 @@
 import { useState } from "react"
 import { type ColumnDef } from "@tanstack/react-table"
-import { usePeriod } from "@/context/PeriodContext"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
-  useMonths, useConfig, useByService, useByResourceType, useResourceTypeDetails,
+  useConfig, useByService, useByResourceType, useResourceTypeDetails,
 } from "@/hooks/queries"
+import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { type ResourceTypeBreakdown, type ResourceTypeDetail } from "@/services/api"
 import { SectionCard } from "@/components/SectionCard"
 import { DonutChart } from "@/components/charts/DonutChart"
@@ -23,14 +23,8 @@ function ServicesSkeleton() {
 
 export function Services() {
   const { t, language } = useLanguage()
-  const { selectedMonth } = usePeriod()
   const [selectedType, setSelectedType] = useState<string | null>(null)
-
-  const monthsQuery = useMonths()
-  const months = monthsQuery.data ?? []
-  const selected = months.find((m) => m.value === selectedMonth) ?? null
-  const from = selected?.from
-  const to = selected?.to
+  const { monthsQuery, months, selected, from, to } = useSelectedMonth()
 
   const byService = useByService(from, to)
   const byResourceType = useByResourceType(from, to)

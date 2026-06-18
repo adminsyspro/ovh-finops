@@ -1,9 +1,7 @@
 import { useParams } from "react-router-dom"
 import { type ColumnDef } from "@tanstack/react-table"
-import { usePeriod } from "@/context/PeriodContext"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
-  useMonths,
   useConfig,
   useProjectsEnriched,
   useProjectInstanceTotal,
@@ -12,6 +10,7 @@ import {
   useProjectBuckets,
   useProjectConsumption,
 } from "@/hooks/queries"
+import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import {
   type CloudInstance,
   type ProjectBucket,
@@ -48,13 +47,7 @@ function ProjectDetailSkeleton() {
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
   const { t, language } = useLanguage()
-  const { selectedMonth } = usePeriod()
-
-  const monthsQuery = useMonths()
-  const months = monthsQuery.data ?? []
-  const selected = months.find((m) => m.value === selectedMonth) ?? null
-  const from = selected?.from
-  const to = selected?.to
+  const { monthsQuery, months, selected, from, to } = useSelectedMonth()
 
   const currency = useConfig().data?.currency ?? "EUR"
 

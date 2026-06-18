@@ -1,8 +1,8 @@
-import { usePeriod } from "@/context/PeriodContext"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
-  useMonths, useConfig, useSummary, useByService, useByProject, useByResourceType, useExpiring,
+  useConfig, useSummary, useByService, useByProject, useByResourceType, useExpiring,
 } from "@/hooks/queries"
+import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { BudgetGauge } from "@/components/BudgetGauge"
@@ -22,19 +22,13 @@ function OverviewSkeleton() {
 
 export function Overview() {
   const { t, language } = useLanguage()
-  const { selectedMonth } = usePeriod()
+  const { monthsQuery, months, selected, previous, from, to } = useSelectedMonth()
 
-  const monthsQuery = useMonths()
-  const months = monthsQuery.data ?? []
-  const idx = months.findIndex((m) => m.value === selectedMonth)
-  const selected = idx >= 0 ? months[idx] : null
-  const previous = idx >= 0 && idx < months.length - 1 ? months[idx + 1] : null
-
-  const summary = useSummary(selected?.from, selected?.to)
+  const summary = useSummary(from, to)
   const prevSummary = useSummary(previous?.from, previous?.to)
-  const byService = useByService(selected?.from, selected?.to)
-  const byProject = useByProject(selected?.from, selected?.to)
-  const byResourceType = useByResourceType(selected?.from, selected?.to)
+  const byService = useByService(from, to)
+  const byProject = useByProject(from, to)
+  const byResourceType = useByResourceType(from, to)
   const expiring = useExpiring(30)
   const config = useConfig()
 
