@@ -1,6 +1,6 @@
 import { usePeriod } from "@/context/PeriodContext"
 import { useLanguage } from "@/context/LanguageProvider"
-import { useMonthlyTrend, useDailyTrend, useConfig } from "@/hooks/queries"
+import { useMonthlyTrend, useConfig } from "@/hooks/queries"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { TrendLineChart } from "@/components/charts/TrendLineChart"
@@ -31,10 +31,9 @@ function TrendsSkeleton() {
 
 export function Trends() {
   const { t, language } = useLanguage()
-  const { months, setMonths, from, to } = usePeriod()
+  const { months, setMonths } = usePeriod()
 
   const monthly = useMonthlyTrend(months)
-  const daily = useDailyTrend(from, to)
   const config = useConfig()
 
   if (monthly.isLoading) return <TrendsSkeleton />
@@ -48,17 +47,11 @@ export function Trends() {
   }
 
   const monthlyData = monthly.data ?? []
-  const dailyData = daily.data ?? []
   const currency = config.data?.currency ?? "EUR"
 
   // Map to chart-ready data using trendMonthLabel for proper labels
   const monthlyChartData = monthlyData.map((p) => ({
     label: trendMonthLabel(p.yearMonth, language),
-    cost: p.cost,
-  }))
-
-  const dailyChartData = dailyData.map((p) => ({
-    label: p.date.slice(5),
     cost: p.cost,
   }))
 
@@ -131,18 +124,7 @@ export function Trends() {
 
       {/* Monthly trend chart */}
       <SectionCard title={`${t("evolutionOver")} ${months} ${t("lastMonths")}`}>
-        <TrendLineChart data={monthlyChartData} />
-      </SectionCard>
-
-      {/* Daily trend chart */}
-      <SectionCard title={t("dailyTrend")}>
-        {daily.isError ? (
-          <p className="py-4 text-center text-sm text-destructive">
-            {t("noDataAvailable")}
-          </p>
-        ) : (
-          <TrendLineChart data={dailyChartData} />
-        )}
+        <TrendLineChart data={monthlyChartData} variant="area" />
       </SectionCard>
     </div>
   )

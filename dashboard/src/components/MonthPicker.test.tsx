@@ -46,6 +46,27 @@ test("MonthPicker affiche un libellé dérivé en anglais", () => {
   expect(screen.queryByText("Mai 2026")).not.toBeInTheDocument()
 })
 
+test("MonthPicker expose les années disponibles", () => {
+  function Harness() {
+    const { setSelectedMonth } = usePeriod()
+    return (
+      <>
+        <button onClick={() => setSelectedMonth("year:2026")}>year</button>
+        <MonthPicker />
+      </>
+    )
+  }
+  render(
+    <LanguageProvider defaultLanguage="fr">
+      <PeriodProvider>
+        <Harness />
+      </PeriodProvider>
+    </LanguageProvider>,
+  )
+  act(() => { screen.getByText("year").click() })
+  expect(screen.getByText("Année 2026")).toBeInTheDocument()
+})
+
 test("MonthPicker corrige un mois sélectionné absent de la liste", async () => {
   function Harness() {
     const { selectedMonth, setSelectedMonth } = usePeriod()

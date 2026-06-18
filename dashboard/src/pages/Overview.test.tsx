@@ -53,7 +53,7 @@ test("Overview affiche les KPI et le delta vs mois précédent", () => {
   expect(screen.getByText(/\+25\.0%/)).toBeInTheDocument()
   // "Compute" is in the by-service DonutChart's plain-DOM legend (reliable under jsdom),
   // unlike project names which only appear in the Recharts bar (not rendered at 0×0).
-  expect(screen.getByText("Compute")).toBeInTheDocument()
+  expect(screen.getAllByText("Compute").length).toBeGreaterThanOrEqual(1)
 })
 
 test("months vide → empty state affiché, pas de skeleton ni KPI", () => {

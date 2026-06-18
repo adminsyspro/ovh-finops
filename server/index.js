@@ -329,6 +329,24 @@ function validateDateRange(from, to) {
   return { valid: true };
 }
 
+function isCurrentMonthRange(from, to) {
+  if (!from || !to) return true;
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  return from.startsWith(`${currentMonth}-`) && to.startsWith(`${currentMonth}-`);
+}
+
+function selectedPeriodConsumption(from, to) {
+  const summary = db.analysis.summary(from, to) || {};
+  return {
+    period_start: from,
+    period_end: to,
+    total: Math.round((summary.cloud_total || 0) * 100) / 100,
+    project_count: summary.projects_count || 0,
+    currency: 'EUR'
+  };
+}
+
 // ========================
 // Route registration function
 // ========================
@@ -350,13 +368,22 @@ function registerRoutes() {
 
   app.get('/api/projects/enriched', (req, res) => {
     try {
+      const { from, to } = req.query;
+      const hasDateRange = !!from && !!to;
+      if (hasDateRange) {
+        const validation = validateDateRange(from, to);
+        if (!validation.valid) {
+          return res.status(400).json({ error: validation.error });
+        }
+      }
+
       const database = db.getDb();
       const projects = database.prepare(`
       SELECT
         p.id, p.name, p.description, p.status,
         COALESCE(ci.instance_count, 0) as instance_count,
-        COALESCE(pc.consumption_total, 0) as consumption_total,
-        pc.period_start, pc.period_end
+        COALESCE(bc.consumption_total, 0) as consumption_total,
+        bc.period_start, bc.period_end
       FROM projects p
       LEFT JOIN (
         SELECT project_id, COUNT(*) as instance_count
@@ -364,13 +391,20 @@ function registerRoutes() {
         GROUP BY project_id
       ) ci ON ci.project_id = p.id
       LEFT JOIN (
-        SELECT project_id, SUM(total_price) as consumption_total,
-               MIN(period_start) as period_start, MAX(period_end) as period_end
-        FROM project_consumption
-        GROUP BY project_id
-      ) pc ON pc.project_id = p.id
+        SELECT
+          d.project_id,
+          SUM(d.total_price) as consumption_total,
+          MIN(b.date) as period_start,
+          MAX(b.date) as period_end
+        FROM bill_details d
+        JOIN bills b ON d.bill_id = b.id
+        WHERE d.project_id IS NOT NULL
+          AND (? IS NULL OR b.date >= ?)
+          AND (? IS NULL OR b.date <= ?)
+        GROUP BY d.project_id
+      ) bc ON bc.project_id = p.id
       ORDER BY consumption_total DESC
-    `).all();
+    `).all(from || null, from || null, to || null, to || null);
       res.json(projects);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -820,6 +854,26 @@ function registerRoutes() {
 
   app.get('/api/consumption/current', (req, res) => {
     try {
+      const { from, to } = req.query;
+      const hasDateRange = !!from && !!to;
+      if (hasDateRange) {
+        const validation = validateDateRange(from, to);
+        if (!validation.valid) return res.status(400).json({ error: validation.error });
+
+        if (!isCurrentMonthRange(from, to)) {
+          const period = selectedPeriodConsumption(from, to);
+          return res.json({
+            snapshot_date: new Date().toISOString(),
+            period_start: period.period_start,
+            period_end: period.period_end,
+            current_total: period.total,
+            source: 'selected_period',
+            project_count: period.project_count,
+            currency: period.currency
+          });
+        }
+      }
+
       const snapshot = db.consumption.getLatestSnapshot();
       // If /me/consumption data is 0, use actual cloud project consumption instead
       const snapshotTotal = snapshot?.current_total || 0;
@@ -857,6 +911,27 @@ function registerRoutes() {
 
   app.get('/api/consumption/forecast', (req, res) => {
     try {
+      const { from, to } = req.query;
+      const hasDateRange = !!from && !!to;
+      if (hasDateRange) {
+        const validation = validateDateRange(from, to);
+        if (!validation.valid) return res.status(400).json({ error: validation.error });
+
+        if (!isCurrentMonthRange(from, to)) {
+          const period = selectedPeriodConsumption(from, to);
+          return res.json({
+            snapshot_date: new Date().toISOString(),
+            period_start: period.period_start,
+            period_end: period.period_end,
+            forecast_total: period.total,
+            current_total: period.total,
+            currency: period.currency,
+            progress: period.total > 0 ? 100 : 0,
+            source: 'selected_period'
+          });
+        }
+      }
+
       const snapshot = db.consumption.getLatestSnapshot();
       const snapshotForecast = snapshot?.forecast_total || 0;
       const snapshotCurrent = snapshot?.current_total || 0;
@@ -940,7 +1015,7 @@ function registerRoutes() {
         debt_balance: Math.round((balance.debt_balance || 0) * 100) / 100,
         credit_balance: Math.round((balance.credit_balance || 0) * 100) / 100,
         deposit_total: Math.round((balance.deposit_total || 0) * 100) / 100,
-        net_balance: Math.round(((balance.credit_balance || 0) - (balance.debt_balance || 0)) * 100) / 100,
+        net_balance: Math.round(((balance.credit_balance || 0) + (balance.deposit_total || 0) - (balance.debt_balance || 0)) * 100) / 100,
         currency: balance.currency
       });
     } catch (err) {
@@ -1192,11 +1267,14 @@ function registerRoutes() {
       const validation = validateDateRange(from, to);
       if (!validation.valid) return res.status(400).json({ error: validation.error });
       const buckets = db.cloudDetails.getBucketsByProject(req.params.id, from, to);
-      // La requête SQL fournit déjà bucket (nom), class (type), total
+      // La requête SQL fournit déjà bucket (nom), class (type), region, total
       const result = buckets.map(b => ({
         name: b.bucket,
         type: b.class || 'Standard',
-        total: b.total
+        region: b.region || null,
+        total: b.total ?? 0,
+        usage_quantity: b.usage_quantity ?? null,
+        usage_unit: b.usage_unit ?? null
       }));
       res.json(result);
     } catch (err) {

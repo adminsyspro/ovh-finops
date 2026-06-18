@@ -56,8 +56,11 @@ export function useExpiring(days = 30) {
 }
 
 // Phase-2: Coûts data layer hooks
-export function useProjectsEnriched() {
-  return useQuery({ queryKey: ["projectsEnriched"], queryFn: fetchProjectsEnriched })
+export function useProjectsEnriched(from?: string | null, to?: string | null) {
+  return useQuery({
+    queryKey: ["projectsEnriched", from, to],
+    queryFn: () => fetchProjectsEnriched(from ?? undefined, to ?? undefined),
+  })
 }
 
 export function useProjectCosts(id: string | null | undefined, from: string | null | undefined, to: string | null | undefined) {
@@ -129,12 +132,20 @@ export function useDailyTrend(from: string | null | undefined, to: string | null
 }
 
 // Phase-3 hooks (Consumption / Inventory / Billing)
-export function useConsumptionCurrent() {
-  return useQuery({ queryKey: ["consumptionCurrent"], queryFn: fetchConsumptionCurrent })
+export function useConsumptionCurrent(from?: string | null, to?: string | null) {
+  return useQuery({
+    queryKey: ["consumptionCurrent", from, to],
+    queryFn: () => fetchConsumptionCurrent(from ?? undefined, to ?? undefined),
+    enabled: (!from && !to) || (!!from && !!to),
+  })
 }
 
-export function useConsumptionForecast() {
-  return useQuery({ queryKey: ["consumptionForecast"], queryFn: fetchConsumptionForecast })
+export function useConsumptionForecast(from?: string | null, to?: string | null) {
+  return useQuery({
+    queryKey: ["consumptionForecast", from, to],
+    queryFn: () => fetchConsumptionForecast(from ?? undefined, to ?? undefined),
+    enabled: (!from && !to) || (!!from && !!to),
+  })
 }
 
 export function useConsumptionHistory(from: string | null | undefined, to: string | null | undefined) {

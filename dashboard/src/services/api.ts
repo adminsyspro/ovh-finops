@@ -41,7 +41,7 @@ export interface ConsumptionForecast { snapshot_date?: string; period_start?: st
 export interface UsageHistoryRow { period_start: string; period_end: string; total: number; currency: string; service_type: string | null }
 export interface DedicatedServer { id: string; display_name: string; reverse: string | null; datacenter: string; os: string; state: string; cpu: string; ram_size: number; disk_info: { type: string; capacity: string; count: number }[]; bandwidth: number; expiration_date: string | null; renewal_type: string | null; imported_at: string }
 export interface VpsInstance { id: string; display_name: string; model: string; zone: string; state: string; os: string; vcpus: number; ram_mb: number; disk_gb: number; expiration_date: string | null; renewal_type: string | null; ip_addresses: string[]; imported_at: string }
-export interface StorageService { id: string; service_type: string; display_name: string; region: string; total_size_gb: number; used_size_gb: number; share_count: number | null; expiration_date: string | null; imported_at: string }
+export interface StorageService { id: string; service_type: string; display_name: string; region: string | null; total_size_gb: number | null; used_size_gb: number | null; share_count: number | null; expiration_date: string | null; imported_at: string }
 export interface InventorySummary { servers: number; vps: number; storage: number; cloud_projects: number; total: number; expiring_soon: number }
 export interface Bill { id: string; date: string; price_without_tax: number; price_with_tax: number; tax: number; currency: string; pdf_url: string | null; html_url: string | null; imported_at: string; payment_type: string | null; payment_date: string | null; payment_status: string | null }
 export interface BillDetail { id: string; bill_id: string; project_id: string | null; domain: string; description: string; quantity: number; unit_price: number; total_price: number; service_type: string; resource_type: string | null }
@@ -55,7 +55,7 @@ export interface EnrichedProject { id: string; name: string; description: string
 export interface ProjectCostPoint { date: string; total: number; service_type: string }
 export interface CloudInstance { id: string; project_id: string; name: string; flavor: string; plan_code: string | null; region: string; status: string; created_at: string | null; monthly_billing: number; imported_at: string }
 export interface ProjectQuota { id: number; project_id: string; region: string; max_cores: number | null; max_instances: number | null; max_ram_mb: number | null; used_cores: number | null; used_instances: number | null; used_ram_mb: number | null; snapshot_date: string }
-export interface ProjectBucket { name: string; type: string; total: number }
+export interface ProjectBucket { name: string; type: string; region: string | null; total: number; usage_quantity?: number | null; usage_unit?: string | null }
 export interface ProjectConsumptionRow { id: number; project_id: string; period_start: string; period_end: string; resource_type: string; resource_id: string | null; resource_name: string; quantity: number; unit: string; unit_price: number; total_price: number; region: string | null; imported_at: string }
 export interface InstanceTotal { total: number }
 export interface ResourceTypeDetail { domain: string; description: string | null; total: number; line_count: number }
@@ -77,8 +77,11 @@ export const fetchProjects = async (): Promise<any> => {
   return data
 }
 
-export const fetchProjectsEnriched = async (): Promise<EnrichedProject[]> => {
-  const { data } = await api.get('/projects/enriched')
+export const fetchProjectsEnriched = async (from?: string, to?: string): Promise<EnrichedProject[]> => {
+  const params: Record<string, string> = {}
+  if (from) params.from = from
+  if (to) params.to = to
+  const { data } = await api.get('/projects/enriched', Object.keys(params).length ? { params } : undefined)
   return data
 }
 
@@ -118,13 +121,19 @@ export const fetchUser = async (): Promise<any> => {
 }
 
 // Phase 1: Consumption
-export const fetchConsumptionCurrent = async (): Promise<ConsumptionCurrent> => {
-  const { data } = await api.get('/consumption/current')
+export const fetchConsumptionCurrent = async (from?: string, to?: string): Promise<ConsumptionCurrent> => {
+  const params: Record<string, string> = {}
+  if (from) params.from = from
+  if (to) params.to = to
+  const { data } = await api.get('/consumption/current', Object.keys(params).length ? { params } : undefined)
   return data
 }
 
-export const fetchConsumptionForecast = async (): Promise<ConsumptionForecast> => {
-  const { data } = await api.get('/consumption/forecast')
+export const fetchConsumptionForecast = async (from?: string, to?: string): Promise<ConsumptionForecast> => {
+  const params: Record<string, string> = {}
+  if (from) params.from = from
+  if (to) params.to = to
+  const { data } = await api.get('/consumption/forecast', Object.keys(params).length ? { params } : undefined)
   return data
 }
 

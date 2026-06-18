@@ -162,7 +162,7 @@ export function Inventory() {
     {
       id: "size",
       header: t("size"),
-      accessorFn: (row) => `${row.total_size_gb} GB`,
+      accessorFn: (row) => row.total_size_gb ? `${row.total_size_gb} GB` : "—",
     },
     {
       id: "shares",

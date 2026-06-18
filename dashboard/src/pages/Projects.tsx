@@ -2,6 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { useNavigate } from "react-router-dom"
 import { DataTable } from "@/components/DataTable"
 import { useProjectsEnriched, useConfig } from "@/hooks/queries"
+import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { type EnrichedProject } from "@/services/api"
 import { formatMoney } from "@/lib/format"
 import { useLanguage } from "@/context/LanguageProvider"
@@ -9,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 export function Projects() {
   const { t, language } = useLanguage()
-  const { data: projects, isLoading, isError } = useProjectsEnriched()
+  const { from, to } = useSelectedMonth()
+  const { data: projects, isLoading, isError } = useProjectsEnriched(from, to)
   const currency = useConfig().data?.currency ?? "EUR"
 
   const columns: ColumnDef<EnrichedProject>[] = [

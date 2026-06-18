@@ -97,8 +97,8 @@ describe('Account Balance (Phase 2)', () => {
 
   test('net balance calculation', () => {
     const row = db.prepare('SELECT * FROM account_balance ORDER BY id DESC LIMIT 1').get();
-    const net = row.credit_balance - row.debt_balance;
-    expect(net).toBe(400.00);
+    const net = row.credit_balance + row.deposit_total - row.debt_balance;
+    expect(net).toBe(600.00);
   });
 });
 

@@ -160,6 +160,11 @@ export function ProjectDetail() {
       cell: ({ row }) => <Badge variant="outline">{row.original.type}</Badge>,
     },
     {
+      accessorKey: "region",
+      header: t("region"),
+      cell: ({ row }) => row.original.region || "-",
+    },
+    {
       accessorKey: "total",
       header: t("amount"),
       cell: ({ row }) => (
@@ -185,7 +190,7 @@ export function ProjectDetail() {
     <div className="space-y-6 p-6">
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">{projectName}</h1>
+        <h1 className="text-2xl font-semibold">{projectName}</h1>
         <KpiCard
           label={t("monthlyBilling")}
           value={formatMoney(instanceTotalQuery.data?.total ?? 0, language, currency)}

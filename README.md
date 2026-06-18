@@ -1,171 +1,55 @@
-<p align="center">
-  <img src="docs/logo.png" alt="OVH FinOps" width="300">
-</p>
+# OVH Cost Manager
 
-<h1 align="center">OVH FinOps</h1>
+Application FinOps pour suivre les couts, factures, consommations et ressources OVHcloud depuis une base SQLite locale alimentee par l'API OVH.
 
-<p align="center">
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-%3E%3D18.0.0-green.svg" alt="Node.js"></a>
-  <a href="https://hub.docker.com/r/adminsyspro/ovh-finops"><img src="https://img.shields.io/docker/v/adminsyspro/ovh-finops?label=Docker&logo=docker" alt="Docker"></a>
-</p>
+L'application expose une API Node/Express et un dashboard React. Elle peut tourner en local pour le developpement ou en Docker avec import automatique.
 
-<p align="center">
-  Interactive dashboard for OVHcloud billing analysis with cost tracking, monthly comparisons, service breakdowns, and trend analysis.
-</p>
+## Fonctionnalites
 
-## Screenshots
+- Tableau de bord des couts par mois ou par annee.
+- Analyse Cloud vs Bare Metal.
+- Detail par projet Public Cloud, service, type de ressource et ligne de facture.
+- Page projets avec instances, quotas, buckets Object Storage et Cold Archive.
+- Tendances mensuelles avec graphiques pleins.
+- Consommation courante, prevision de fin de mois et historique reconstruit depuis les factures si necessaire.
+- Inventaire OVH : serveurs dedies, VPS, buckets Public Cloud, projets Cloud et expirations proches.
+- Facturation : liste des factures, details, paiements et solde du compte.
+- Interface FR/EN, theme clair/sombre, selection de mois ou d'annee complete.
+- Exports CSV et outils CLI pour les factures.
+- Auth OIDC optionnelle et rate limiting configurable.
 
-### Overview
-![Overview - Service breakdown and top projects](docs/screenshots/overview.png)
+## Architecture
 
-### Month Comparison
-![Compare - Side by side month comparison](docs/screenshots/compare.png)
+```text
+.
+├── dashboard/          # Frontend React + Vite
+├── server/             # API Express et service des fichiers statiques du dashboard
+├── data/               # Import OVH, schema SQLite, acces aux donnees
+├── cli/                # Outils CLI historiques autour des factures
+├── scripts/            # Entrypoint Docker et import periodique
+├── tests/              # Tests Jest backend/data
+├── docker-compose.yml  # Deploiement sans SSO
+└── docker-compose.sso.yml
+```
 
-### Historical Trends
-![Trends - 12-month cost evolution](docs/screenshots/trends.png)
+La base de donnees est stockee dans `DATA_DIR/ovh-bills.db`. En Docker, le volume par defaut est `ocm-data` monte dans `/app/data`.
 
-## Features
+## Prerequis
 
-### Dashboard
-- **Interactive Dashboard**: React-based SPA with Recharts visualizations
-- **Multi-language Support**: French and English interface (i18n)
-- **6 navigation tabs**: Overview, Comparison, Trends, Public Cloud, Infrastructure, Backup
+- Node.js 20 recommande.
+- npm.
+- Docker et Docker Compose pour le deploiement conteneurise.
+- Identifiants API OVH avec les droits de lecture necessaires.
 
-### Cost Analysis
-- **Service Breakdown**: Costs by service type (Compute, Storage, Network, Database, AI/ML, Licenses, Backup, Support)
-- **Resource Type Classification**: Automatic categorization (Public Cloud, Dedicated Servers, VPS, Storage, Load Balancers, IP, Domains, Private Cloud Hosts, Private Cloud Datastores, Licenses, Backup, Telephony)
-- **Resource Type Detail**: Expandable cost breakdown per individual service within each category
-- **GPU Cost Consolidation**: Dedicated view for GPU costs by model (NVIDIA L4, L40S, A100, H100) and by project
-- **Month Comparison**: Side-by-side comparison between two months with variation tracking, including infrastructure, backup, Private Cloud, and per-project product breakdowns
-- **Trend Analysis**: Historical trends with configurable period (3-36 months) and GPU evolution chart
-- **Budget Tracking**: Visual budget consumption with configurable targets
+## Configuration OVH
 
-### Real-time Monitoring
-- **Current Consumption**: Live consumption data from OVH API with today's date
-- **End-of-month Forecast**: Projected monthly total with progress indicator
-- **Account Balance**: Debt, credits, and deposit tracking
-
-### Infrastructure Inventory
-- **Public Cloud**: Projects, instances (with GPU highlighting), quotas by region, Kubernetes clusters, Object Storage (S3) buckets with cost, Container Registry
-- **Private Cloud / vSphere**: Hosts (ESXi), datastores (SSD), management fees
-- **Dedicated Servers**: Full specs (CPU, RAM, datacenter, expiration, renewal) — Scale, Advance, Infra series
-- **VPS**: Model, zone, specs, state
-- **Storage**: NAS-HA services with size and shares
-- **Backup**: Veeam Backup VMs and Enterprise licenses with cost breakdown
-- **Expiring Services**: Alert for services expiring within 30 days
-
-### Tools & Export
-- **Export**: PDF and Markdown report generation, CSV exports (bills, details, inventory)
-- **CLI Tools**: Download invoices, split by project, extract bills per project
-- **Data Import**: Full, differential, or targeted import from OVH API into local SQLite database
-
-## Quick Start
+Copier l'exemple :
 
 ```bash
-# Clone and install
-git clone https://github.com/adminsyspro/ovh-finops.git
-cd ovh-finops
-npm install
-
-# Configure OVH API credentials (see Configuration section below)
 cp config.example.json config.json
-# Edit config.json with your OVH API credentials
-
-# Import data from OVH API
-npm run import:full
-
-# Start the dashboard
-npm run dev
 ```
 
-Open http://localhost:5173 to view the dashboard.
-
-> **Note**: The import requires valid OVH API credentials. See [Configuration](#configuration) for setup instructions.
-
-## Project Structure
-
-```
-ovh-finops/
-├── cli/                      # Command-line tools
-│   ├── index.js              # Invoice downloader
-│   ├── split-by-project.js   # Cost analyzer (via OVH API)
-│   └── bills-by-project.js   # Bills extractor (via local DB)
-├── data/                     # Data layer
-│   ├── import.js             # OVH API → SQLite import script
-│   ├── db.js                 # Database connection and queries
-│   ├── classify.js           # Shared classification functions
-│   ├── schema.sql            # SQLite schema
-│   └── ovh-bills.db          # Local database (gitignored)
-├── scripts/                  # Docker & automation scripts
-│   ├── entrypoint.sh         # Docker entrypoint (server + cron)
-│   └── cron-import.sh        # Periodic differential import (24h)
-├── server/                   # Backend API
-│   └── index.js              # Express server (port 3001)
-├── dashboard/                # Frontend (Vite + React)
-│   └── src/
-│       ├── components/       # React components (Logo, Accordion)
-│       ├── hooks/            # Custom hooks (useLanguage)
-│       ├── i18n/             # Translations (FR/EN)
-│       ├── pages/            # Dashboard page
-│       └── services/         # API client
-├── docs/                     # Documentation
-│   ├── deployment.md         # Docker & SSO deployment guide
-│   └── screenshots/          # Dashboard screenshots
-├── Dockerfile                # Docker image definition
-├── docker-compose.yml        # Base deployment (without SSO)
-├── docker-compose.sso.yml    # SSO extension (LemonLDAP + Traefik)
-├── .dockerignore             # Docker build exclusions
-└── config.example.json       # Configuration template
-```
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) >= 18.0.0 (for local development)
-- [Docker](https://www.docker.com/) and Docker Compose (for containerized deployment)
-- OVH API credentials (see [Configuration](#configuration))
-
-## Configuration
-
-### 1. Generate OVH API Credentials
-
-1. Go to [OVH API Token Creation](https://eu.api.ovh.com/createToken/)
-2. Log in and note your **Application Key** and **Application Secret**
-
-### 2. Generate Consumer Key
-
-```bash
-curl -X POST \
-  -H "Content-type: application/json" \
-  -H "X-Ovh-Application: YOUR_APP_KEY" \
-  -d '{"accessRules": [
-    {"method": "GET", "path": "/me"},
-    {"method": "GET", "path": "/me/*"},
-    {"method": "GET", "path": "/cloud"},
-    {"method": "GET", "path": "/cloud/*"},
-    {"method": "GET", "path": "/dedicated/server"},
-    {"method": "GET", "path": "/dedicated/server/*"},
-    {"method": "GET", "path": "/dedicatedCloud"},
-    {"method": "GET", "path": "/dedicatedCloud/*"},
-    {"method": "GET", "path": "/ip"},
-    {"method": "GET", "path": "/ip/*"},
-    {"method": "GET", "path": "/ipLoadbalancing"},
-    {"method": "GET", "path": "/ipLoadbalancing/*"},
-    {"method": "GET", "path": "/vps"},
-    {"method": "GET", "path": "/vps/*"},
-    {"method": "GET", "path": "/storage"},
-    {"method": "GET", "path": "/storage/*"}
-  ]}' \
-  https://eu.api.ovh.com/1.0/auth/credential
-```
-
-> **Minimum permissions**: `/me/*` and `/cloud/*` are required. The additional paths (`/dedicated/server/*`, `/dedicatedCloud/*`, `/vps/*`, `/storage/*`, `/ip/*`, `/ipLoadbalancing/*`) enable the full infrastructure inventory. The dashboard works without them but inventory data will be limited.
-
-Visit the `validationUrl` in the response to authorize the application.
-
-### 3. Create Configuration File
-
-Create `config.json` at project root or `$HOME/my-ovh-bills/config.json`:
+Renseigner les credentials OVH :
 
 ```json
 {
@@ -184,360 +68,206 @@ Create `config.json` at project root or `$HOME/my-ovh-bills/config.json`:
 }
 ```
 
-> **Language options**: `"fr"` (French) or `"en"` (English). Can also be changed via the UI.
+`DATA_DIR` peut aussi etre fourni par variable d'environnement. Il prend le dessus sur `dataDir`.
 
-> **`dataDir`**: Optional. Directory where the SQLite database is stored. Defaults to `data/` within the project. Can also be set via the `DATA_DIR` environment variable (which takes precedence).
+### Droits API conseilles
 
-> **Note**: Legacy format (`credentials.json` with flat structure) is still supported.
+Pour un inventaire complet, le consumer key OVH doit pouvoir lire :
 
-## Rate Limiting
-
-The API server includes rate limiting to protect against DoS attacks and brute-force attempts. This protection is **enabled by default** but fully configurable.
-
-### Default Limits
-
-| Endpoint  | Limit        | Window     | Per        |
-| --------- | ------------ | ---------- | ---------- |
-| `/api/*`  | 100 requests | 15 minutes | IP address |
-| `/auth/*` | 20 requests  | 15 minutes | IP address |
-
-### Configuration via config.json
-
-Add a `rateLimit` section to your [config.json](config.json):
-
-```json
-{
-  "credentials": { ... },
-  "dashboard": { ... },
-  "rateLimit": {
-    "enabled": true,
-    "trustProxy": false,
-    "api": {
-      "windowMs": 900000,
-      "max": 100
-    },
-    "auth": {
-      "windowMs": 900000,
-      "max": 20
-    }
-  }
-}
+```text
+/me
+/me/*
+/cloud
+/cloud/*
+/dedicated/server
+/dedicated/server/*
+/vps
+/vps/*
+/storage
+/storage/*
+/ip
+/ip/*
+/ipLoadbalancing
+/ipLoadbalancing/*
 ```
 
-**Parameters**:
-- `enabled`: Enable/disable globally (default: `true`)
-- `trustProxy`: Trust `X-Forwarded-For` headers (default: `false`)
-- `api.windowMs`: Window duration in milliseconds (default: `900000` = 15 min)
-- `api.max`: Maximum API requests per IP per window (default: `100`)
-- `auth.windowMs`: Window duration for authentication endpoints (default: `900000`)
-- `auth.max`: Maximum authentication requests per IP (default: `20`)
+Les droits minimum pour les couts et factures sont `/me/*` et `/cloud/*`. Les autres chemins enrichissent l'inventaire.
 
-### Configuration via Environment Variables
+## Demarrage local
 
-Environment variables take **priority** over [config.json](config.json):
+Installer les dependances :
 
 ```bash
-# Enable/disable
-RATE_LIMIT_ENABLED=true|false
-
-# Trust proxy (CRITICAL for Kubernetes/reverse proxy)
-TRUST_PROXY=true|false
-
-# API limits
-RATE_LIMIT_API_WINDOW_MS=900000    # 15 minutes
-RATE_LIMIT_API_MAX=100             # 100 requests
-
-# Authentication limits
-RATE_LIMIT_AUTH_WINDOW_MS=900000   # 15 minutes
-RATE_LIMIT_AUTH_MAX=20             # 20 requests
+npm install
 ```
 
-**Docker/Kubernetes Example**:
-```yaml
-environment:
-  - TRUST_PROXY=true
-  - RATE_LIMIT_API_MAX=500
-  - RATE_LIMIT_AUTH_MAX=100
-```
-
-### Disabling Rate Limiting
-
-For internal applications secured by upstream SSO:
+Importer les donnees :
 
 ```bash
-# Via environment variable
-RATE_LIMIT_ENABLED=false
-
-# Or in config.json
-{
-  "rateLimit": {
-    "enabled": false
-  }
-}
+npm run import:full
 ```
 
-### ⚠️ IMPORTANT: Kubernetes / Reverse Proxy Deployments
-
-**Problem**: By default, the server identifies clients by their IP address. Behind a reverse proxy (Kubernetes Ingress, Traefik, nginx), **all requests** appear to come from the same IP (the proxy/ingress IP). Result: all users share the same global limit.
-
-**Symptoms**:
-- 429 "Too many requests" errors after only a few dozen requests
-- Multiple users are blocked simultaneously
-- The problem is amplified if users connect through a corporate VPN (single IP)
-
-**Required Solution**:
-
-You **must** enable `trustProxy` so the server uses the `X-Forwarded-For` header:
+Lancer API et frontend Vite :
 
 ```bash
-# Via environment variable (recommended)
-TRUST_PROXY=true
-
-# Or in config.json
-{
-  "rateLimit": {
-    "trustProxy": true
-  }
-}
+npm run dev
 ```
 
-Once enabled, each user is identified by their real IP address and gets their own individual limit.
+Par defaut :
 
-**Alternative**: If your application is 100% internal and protected by SSO, you can completely disable rate limiting (`RATE_LIMIT_ENABLED=false`).
+- API : `http://localhost:3001`
+- Frontend Vite : `http://localhost:5173`
 
-> **Note**: Standard `RateLimit-*` headers are included in responses to indicate remaining limits. Check `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` headers.
-
-## Usage
-
-### Import Data
+Pour lancer uniquement le serveur API qui sert aussi le build du dashboard :
 
 ```bash
-# Full import (all historical data)
+npm run build
+PORT=3001 npm run dev:server
+```
+
+## Demarrage Docker
+
+Creer `config.json`, puis lancer :
+
+```bash
+docker compose up -d --build
+```
+
+Ouvrir :
+
+```text
+http://localhost:3001
+```
+
+Le conteneur lance le serveur et un import periodique via `scripts/cron-import.sh`.
+
+Variables utiles :
+
+| Variable | Description | Defaut |
+| --- | --- | --- |
+| `OCM_PORT` | Port expose sur l'hote | `3001` |
+| `PORT` | Port interne Express | `3001` |
+| `IMPORT_ENABLED` | Active l'import periodique | `true` |
+| `IMPORT_INTERVAL` | Intervalle entre imports, en secondes | `86400` |
+| `IMPORT_FLAGS` | Flags passes a `data/import.js` | `--all` |
+| `DATA_DIR` | Dossier contenant `ovh-bills.db` | `data/` ou `/app/data` |
+| `RATE_LIMIT_ENABLED` | Active le rate limiting API | `true` |
+| `TRUST_PROXY` | Active la confiance proxy | `false` |
+
+## Imports
+
+Commandes principales :
+
+```bash
+# Import complet
 npm run import:full
 
-# Import specific period
-npm run import -- --from 2025-01-01 --to 2025-12-31
-
-# Differential import (new data since last import)
+# Import differentiel depuis la derniere facture connue
 npm run import:diff
 
-# Include consumption data (real-time + forecast)
-npm run import -- --from 2025-01-01 --include-consumption
+# Import d'une periode
+npm run import -- --from 2026-01-01 --to 2026-12-31
 
-# Include infrastructure inventory (servers, VPS, storage)
-npm run import -- --from 2025-01-01 --include-inventory
-
-# Include cloud project details (instances, quotas)
-npm run import -- --from 2025-01-01 --include-cloud-details
-
-# Import everything
-npm run import -- --from 2025-01-01 --all
+# Import avec donnees enrichies
+node data/import.js --diff --include-account
+node data/import.js --diff --include-inventory
+node data/import.js --diff --include-cloud-details
+node data/import.js --diff --all
 ```
 
-### Start Dashboard
+En Docker :
 
 ```bash
-# Development (server + frontend)
-npm run dev
-
-# Or separately:
-npm run dev:server    # Backend on :3001
-npm run dev:dashboard # Frontend on :5173
+docker exec ovh-finops node data/import.js --diff --all
 ```
 
-### CLI Tools
+Les flags enrichis alimentent notamment :
+
+- `--include-account` : solde, credits, dettes, informations de paiement.
+- `--include-inventory` : serveurs dedies, VPS, stockage NetApp.
+- `--include-cloud-details` : instances, quotas, buckets, consommation Public Cloud courante.
+- `--all` : active toutes les donnees enrichies.
+
+## Pages principales
+
+| Page | Role |
+| --- | --- |
+| `/` | Vue executive : cout total, part Cloud, projets, services et ressources dominantes |
+| `/projects` | Liste des projets Public Cloud avec cout de la periode |
+| `/projects/:id` | Detail projet : instances, quotas, buckets, consommation |
+| `/costs/services` | Analyse par service et type de ressource |
+| `/trends` | Evolution historique sur 3 a 36 mois |
+| `/compare` | Comparaison de deux mois |
+| `/consumption` | Consommation courante, periode selectionnee et historique |
+| `/inventory` | Inventaire OVH et expirations proches |
+| `/bills` | Factures, details et solde du compte |
+
+Le selecteur en haut a droite permet de choisir un mois ou une annee complete. Les pages de couts utilisent cette periode pour les requetes `from/to`.
+
+## Tests et validation
+
+Frontend :
 
 ```bash
-# Download invoices
-npm run cli -- --from=2025-01-01 --to=2025-12-31
-
-# Generate markdown summary
-npm run cli -- --from=2025-01-01 --summary
-
-# Split by project via OVH API (JSON)
-npm run split -- --from 2025-12-01 --to 2025-12-31
-
-# Split by project via OVH API (Markdown)
-npm run split -- --from 2025-12-01 --to 2025-12-31 --format md
-
-# Extract bills from local DB
-npm run bills -- --list                              # List all projects
-npm run bills -- --project "AI"                      # All bills for project
-npm run bills -- --project "AI" --from 2025-01-01 --to 2025-12-31
-npm run bills -- --project "AI" --format md          # Markdown output
-npm run bills -- --month 2025-12                     # All bills for a month
-npm run bills -- --month 2025-12 --format md         # Markdown output
+npm run test --workspace=dashboard
 ```
 
-## Docker Deployment
-
-Two deployment modes are available:
-- **Simple**: OCM only, direct access on port 3001
-- **SSO**: Full stack with Traefik reverse proxy and LemonLDAP-NG authentication
-
-> **Detailed documentation**: See [docs/deployment.md](docs/deployment.md) for complete deployment guide, including SAML and OIDC configuration with LemonLDAP-NG.
-
-### Option 1: Simple Deployment (without SSO)
+Backend/data :
 
 ```bash
-# Build and start
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f ocm
+npx jest tests
 ```
 
-Access the dashboard at http://localhost:3001
-
-> **Automatic import**: On first start, a full import runs automatically if the database is empty. Then a differential import runs every 24 hours. Configure with `IMPORT_INTERVAL`, `IMPORT_FLAGS`, or disable with `IMPORT_ENABLED=false`.
-
-#### Environment Variables (Simple)
-
-| Variable                    | Description                                                      | Default         |
-| --------------------------- | ---------------------------------------------------------------- | --------------- |
-| `OCM_PORT`                  | Exposed port                                                     | 3001            |
-| `AUTH_REQUIRED`             | Require auth headers                                             | false           |
-| `DATA_DIR`                  | Directory for database storage                                   | /app/data       |
-| `IMPORT_ENABLED`            | Enable automatic periodic import                                 | true            |
-| `IMPORT_INTERVAL`           | Seconds between imports                                          | 86400 (24h)     |
-| `IMPORT_FLAGS`              | Extra flags for import script                                    | --all           |
-| `TRUST_PROXY`               | Trust X-Forwarded-For headers (⚠️ required for K8s/reverse proxy) | false           |
-| `RATE_LIMIT_ENABLED`        | Enable rate limiting                                             | true            |
-| `RATE_LIMIT_API_MAX`        | Max API requests per IP per window                               | 100             |
-| `RATE_LIMIT_API_WINDOW_MS`  | API rate limit window in milliseconds                            | 900000 (15 min) |
-| `RATE_LIMIT_AUTH_MAX`       | Max auth requests per IP per window                              | 20              |
-| `RATE_LIMIT_AUTH_WINDOW_MS` | Auth rate limit window in milliseconds                           | 900000 (15 min) |
-
-### Option 2: SSO Deployment (with LemonLDAP-NG)
+Build :
 
 ```bash
-# Build and start full stack
-docker-compose -f docker-compose.yml -f docker-compose.sso.yml up -d --build
-
-# View logs
-docker-compose -f docker-compose.yml -f docker-compose.sso.yml logs -f
+npm run build
 ```
 
-Access the dashboard at http://ocm.localhost (or your configured domain).
+## Donnees et depannage
 
-#### Architecture (SSO)
-
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Traefik   │───▶│  LemonLDAP  │───▶│     OCM     │
-│   (:80)     │    │  (handler)  │    │   (:3001)   │
-└─────────────┘    └─────────────┘    └─────────────┘
-```
-
-#### Environment Variables (SSO)
-
-Create a `.env` file:
+Verifier le volume Docker :
 
 ```bash
-# Domain configuration
-OCM_DOMAIN=ocm.example.com
-SSO_DOMAIN=example.com
+docker volume inspect ocm-data
 ```
 
-#### Docker Compose Services (SSO)
+Verifier la base SQLite :
 
-| Service     | Description      | Port                 |
-| ----------- | ---------------- | -------------------- |
-| `ocm`       | OVH FinOps       | internal             |
-| `traefik`   | Reverse proxy    | 80, 8080 (dashboard) |
-| `lemonldap` | SSO Portal       | internal             |
+```bash
+sqlite3 /var/lib/docker/volumes/ocm-data/_data/ovh-bills.db \
+  "select count(*) from bills; select count(*) from bill_details;"
+```
 
-#### SSO Configuration (LemonLDAP-NG)
+Si une page affiche `0` alors que les donnees existent chez OVH :
 
-1. Access the LemonLDAP Manager at http://manager.localhost
-2. Create a virtual host for your OCM domain
-3. Configure exported headers:
-   - `Auth-User` → `$uid`
-   - `Auth-Mail` → `$mail`
-   - `Auth-CN` → `$cn`
+1. Relancer l'import enrichi adapte.
+2. Verifier que le serveur utilise le bon `DATA_DIR`.
+3. Controler l'endpoint API correspondant.
 
-### Volume Mounts
+Exemples :
 
-| Volume               | Purpose                 | Mode     |
-| -------------------- | ----------------------- | -------- |
-| `ocm-data`           | SQLite database         | Both     |
-| `lemonldap-conf`     | LemonLDAP configuration | SSO only |
-| `lemonldap-sessions` | SSO session storage     | SSO only |
+```bash
+DATA_DIR=/var/lib/docker/volumes/ocm-data/_data node data/import.js --diff --all
+DATA_DIR=/var/lib/docker/volumes/ocm-data/_data PORT=3001 npm run dev:server
 
-### Production Deployment
+curl -s "http://localhost:3001/api/inventory/summary"
+curl -s "http://localhost:3001/api/projects/enriched?from=2026-01-01&to=2026-12-31"
+```
 
-For production with SSO:
+## SSO et production
 
-1. Configure proper domain names in `.env`
-2. Add HTTPS with Let's Encrypt (Traefik supports it)
-3. Connect LemonLDAP to your LDAP/AD directory
-4. Use external volume or backup strategy for data
+Le fichier `docker-compose.sso.yml` ajoute une integration LemonLDAP-NG et Traefik. Voir `docs/deployment.md` pour le detail du mode SSO.
 
-## API Endpoints
+Pour une mise en production :
 
-### Billing & Analysis
+- monter `config.json` en lecture seule ;
+- persister le volume `ocm-data` ;
+- activer `TRUST_PROXY=true` derriere un reverse proxy ;
+- ajuster `RATE_LIMIT_*` selon le contexte ;
+- proteger l'acces avec OIDC/SSO ou un reverse proxy d'entreprise ;
+- planifier un import periodique avec `IMPORT_FLAGS=--all`.
 
-| Endpoint                                                  | Description                                   |
-| --------------------------------------------------------- | --------------------------------------------- |
-| `GET /api/months`                                         | Available months for selection                |
-| `GET /api/summary?from=&to=`                              | Summary with totals                           |
-| `GET /api/bills?from=&to=`                                | List bills in date range                      |
-| `GET /api/analysis/by-project?from=&to=`                  | Costs grouped by project                      |
-| `GET /api/analysis/by-service?from=&to=`                  | Costs grouped by service type                 |
-| `GET /api/analysis/by-resource-type?from=&to=`            | Costs grouped by resource type                |
-| `GET /api/analysis/resource-type-details?type=&from=&to=` | Detail for a specific resource type           |
-| `GET /api/analysis/public-cloud-stats?from=&to=`          | Public Cloud stats (K8s, S3, Registry)        |
-| `GET /api/analysis/backup-stats?from=&to=`                | Backup stats (Veeam VMs, Enterprise licenses) |
-| `GET /api/analysis/daily-trend?from=&to=`                 | Daily cost trend                              |
-| `GET /api/analysis/monthly-trend?months=6`                | Monthly cost trend                            |
+## Licence
 
-### Consumption & Account
-
-| Endpoint                                       | Description                     |
-| ---------------------------------------------- | ------------------------------- |
-| `GET /api/consumption/current`                 | Current consumption (real-time) |
-| `GET /api/consumption/forecast`                | End-of-month forecast           |
-| `GET /api/consumption/usage-history?from=&to=` | Consumption history             |
-| `GET /api/account/balance`                     | Debt, credits, deposits         |
-| `GET /api/account/credits`                     | Credit movements                |
-
-### Inventory
-
-| Endpoint                                         | Description                                  |
-| ------------------------------------------------ | -------------------------------------------- |
-| `GET /api/projects`                              | List all Cloud projects                      |
-| `GET /api/projects/enriched`                     | Projects with instance count and consumption |
-| `GET /api/projects/:id/consumption?from=&to=`    | Project consumption by resource              |
-| `GET /api/projects/:id/instances`                | Project instances                            |
-| `GET /api/projects/:id/quotas`                   | Project quotas by region                     |
-| `GET /api/projects/:id/buckets?from=&to=`        | Project S3 buckets with cost                 |
-| `GET /api/projects/:id/instance-total?from=&to=` | Project instance total cost                  |
-| `GET /api/inventory/servers`                     | Dedicated servers list                       |
-| `GET /api/inventory/vps`                         | VPS instances list                           |
-| `GET /api/inventory/storage`                     | Storage services list                        |
-| `GET /api/inventory/summary`                     | Resource count summary                       |
-| `GET /api/inventory/expiring?days=30`            | Services expiring soon                       |
-
-### GPU & System
-
-| Endpoint                            | Description                        |
-| ----------------------------------- | ---------------------------------- |
-| `GET /api/gpu/summary?from=&to=`    | GPU costs by model, project, trend |
-| `GET /api/import/status`            | Import history and status          |
-| `GET /api/config`                   | Dashboard configuration            |
-| `GET /api/user`                     | Current authenticated user info    |
-| `GET /api/health`                   | Health check endpoint              |
-| `GET /api/export/bills?from=&to=`   | CSV export of bills                |
-| `GET /api/export/details?from=&to=` | CSV export of bill details         |
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## License
-
-MIT License - see [LICENSE.txt](LICENSE.txt)
-
-## Author
-
-**adminsyspro**
+MIT. Voir `LICENSE.txt`.
