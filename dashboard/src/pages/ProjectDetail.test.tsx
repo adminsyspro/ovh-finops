@@ -142,3 +142,14 @@ test("ProjectDetail: renders quota region GRA", () => {
   // GRA appears in both the instances table region column and the quota card — getAllByText handles both
   expect(screen.getAllByText("GRA").length).toBeGreaterThan(0)
 })
+
+test("ProjectDetail: shows skeleton (not content) while instance-total is loading", () => {
+  vi.mocked(queries.useProjectInstanceTotal).mockReturnValue({
+    data: undefined,
+    isLoading: true,
+    isError: false,
+  } as any)
+  wrap(<ProjectDetail />)
+  // Header content should NOT be visible while month-scoped query is loading
+  expect(screen.queryByText("My Project")).not.toBeInTheDocument()
+})

@@ -35,12 +35,23 @@ const CHART_COLORS = [
 
 const GPU_PATTERN = /^(l4-|l40s-|a100-|h100-|v100-|t1-|t2-)/
 
+function ProjectDetailSkeleton() {
+  return (
+    <div className="space-y-4 p-6">
+      <Skeleton className="h-10 w-64" />
+      <Skeleton className="h-28 w-full" />
+      <Skeleton className="h-64 w-full" />
+    </div>
+  )
+}
+
 export function ProjectDetail() {
   const { id } = useParams<{ id: string }>()
   const { t, language } = useLanguage()
   const { selectedMonth } = usePeriod()
 
-  const months = useMonths().data ?? []
+  const monthsQuery = useMonths()
+  const months = monthsQuery.data ?? []
   const selected = months.find((m) => m.value === selectedMonth) ?? null
   const from = selected?.from
   const to = selected?.to
@@ -57,24 +68,30 @@ export function ProjectDetail() {
   const consumptionQuery = useProjectConsumption(id, from, to)
   const instanceTotalQuery = useProjectInstanceTotal(id, from, to)
 
-  // Page gate: loading
-  if (instancesQuery.isLoading) {
-    return (
-      <div className="space-y-4 p-6">
-        <Skeleton className="h-10 w-64" />
-        <Skeleton className="h-28 w-full" />
-        <Skeleton className="h-64 w-full" />
-      </div>
-    )
-  }
+  // Page gate: months or month-independent instance list loading
+  if (monthsQuery.isLoading || instancesQuery.isLoading) return <ProjectDetailSkeleton />
 
   // Page gate: error
-  if (instancesQuery.isError) {
+  if (monthsQuery.isError || instancesQuery.isError) {
     return (
       <div className="rounded-lg border border-destructive/50 p-6 text-center text-destructive">
         {t("noDataAvailable")}
       </div>
     )
+  }
+
+  // Page gate: no months available
+  if (months.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+        {t("noDataAvailable")}
+      </div>
+    )
+  }
+
+  // Page gate: month not resolved or month-scoped queries loading
+  if (!selected || instanceTotalQuery.isLoading || consumptionQuery.isLoading || bucketsQuery.isLoading) {
+    return <ProjectDetailSkeleton />
   }
 
   // ── Consumption aggregation by resource_type ──────────────────────────
