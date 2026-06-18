@@ -71,6 +71,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     mostExpensiveMonth: 'Mois le plus coûteux',
     annualProjection: 'Projection annuelle',
     basedOnLastMonth: 'Basé sur le dernier mois',
+    dailyTrend: 'Tendance quotidienne',
 
     // Footer
     syncedVia: 'Données synchronisées via l\'API OVHcloud',
@@ -228,6 +229,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     mostExpensiveMonth: 'Most expensive month',
     annualProjection: 'Annual projection',
     basedOnLastMonth: 'Based on last month',
+    dailyTrend: 'Daily trend',
 
     // Footer
     syncedVia: 'Data synchronized via OVHcloud API',

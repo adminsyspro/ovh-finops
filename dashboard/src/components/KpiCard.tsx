@@ -3,15 +3,17 @@ import { cn } from "@/lib/utils"
 import { useLanguage } from "@/context/LanguageProvider"
 
 export function KpiCard({
-  label, value, sublabel, delta, accent,
+  label, value, sublabel, delta, accent, deltaLabel,
 }: {
   label: string
   value: string
   sublabel?: string
   delta?: number | null
   accent?: boolean
+  deltaLabel?: string
 }) {
   const { t } = useLanguage()
+  const resolvedSuffix = deltaLabel !== undefined ? deltaLabel : t("vsPreviousMonth")
   return (
     <Card className={cn(accent && "border-l-4 border-l-primary")}>
       <CardContent className="p-5">
@@ -28,7 +30,7 @@ export function KpiCard({
                 delta > 0 ? "text-red-500" : delta < 0 ? "text-green-500" : "text-muted-foreground",
               )}
             >
-              {delta > 0 ? "+" : ""}{delta.toFixed(1)}% {t("vsPreviousMonth")}
+              {delta > 0 ? "+" : ""}{delta.toFixed(1)}%{resolvedSuffix ? ` ${resolvedSuffix}` : ""}
             </p>
           )
         )}

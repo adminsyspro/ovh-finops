@@ -107,6 +107,7 @@ export function Trends() {
           label={t("periodGrowth")}
           value={`${t("overLast")} ${months} ${t("lastMonths")}`}
           delta={growth}
+          deltaLabel=""
         />
         <KpiCard
           label={t("mostExpensiveMonth")}
@@ -126,7 +127,7 @@ export function Trends() {
       </SectionCard>
 
       {/* Daily trend chart */}
-      <SectionCard title={t("trends")}>
+      <SectionCard title={t("dailyTrend")}>
         <TrendLineChart data={dailyChartData} />
       </SectionCard>
     </div>

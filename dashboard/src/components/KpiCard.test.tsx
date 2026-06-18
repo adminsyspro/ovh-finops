@@ -29,3 +29,16 @@ test("KpiCard: delta négatif en vert", () => {
   wrap(<KpiCard label="x" value="0" delta={-3.2} />)
   expect(screen.getByText(/-3\.2%/)).toHaveClass("text-green-500")
 })
+
+test("KpiCard: deltaLabel vide supprime le suffixe 'vs mois précédent'", () => {
+  wrap(<KpiCard label="x" value="0" delta={5} deltaLabel="" />)
+  const el = screen.getByText(/\+5\.0%/)
+  expect(el).toBeInTheDocument()
+  expect(el.textContent).not.toContain("vs mois précédent")
+  expect(el.textContent).not.toContain("vs previous month")
+})
+
+test("KpiCard: sans deltaLabel, le suffixe 'vs mois précédent' reste affiché (compat rétro)", () => {
+  wrap(<KpiCard label="x" value="0" delta={5} />)
+  expect(screen.getByText(/vs mois précédent/)).toBeInTheDocument()
+})
