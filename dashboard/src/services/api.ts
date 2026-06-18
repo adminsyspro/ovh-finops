@@ -21,12 +21,26 @@ api.interceptors.response.use(
   }
 )
 
-export const fetchMonths = async (): Promise<any> => {
+export interface Month { value: string; label: string; from: string; to: string }
+export interface SummaryProject { name: string; value: number }
+export interface Summary {
+  period: { from: string; to: string }
+  total: number; cloudTotal: number; nonCloudTotal: number
+  dailyAverage: number; billsCount: number; projectsCount: number
+  topProjects: SummaryProject[]
+}
+export interface ServiceBreakdown { name: string; value: number; color: string; detailsCount: number }
+export interface ProjectBreakdown { projectId: string; projectName: string; total: number; detailsCount: number }
+export interface ResourceTypeBreakdown { name: string; resource_type: string; value: number; color: string; detailsCount: number; serviceCount: number }
+export interface ExpiringService { id: string; display_name: string; type: string; expiration_date: string }
+export interface AppConfig { budget: number; currency: string }
+
+export const fetchMonths = async (): Promise<Month[]> => {
   const { data } = await api.get('/months')
   return data
 }
 
-export const fetchSummary = async (from: string, to: string): Promise<any> => {
+export const fetchSummary = async (from: string, to: string): Promise<Summary> => {
   const { data } = await api.get('/summary', { params: { from, to } })
   return data
 }
@@ -41,12 +55,12 @@ export const fetchProjectsEnriched = async (): Promise<any> => {
   return data
 }
 
-export const fetchByProject = async (from: string, to: string): Promise<any> => {
+export const fetchByProject = async (from: string, to: string): Promise<ProjectBreakdown[]> => {
   const { data } = await api.get('/analysis/by-project', { params: { from, to } })
   return data
 }
 
-export const fetchByService = async (from: string, to: string): Promise<any> => {
+export const fetchByService = async (from: string, to: string): Promise<ServiceBreakdown[]> => {
   const { data } = await api.get('/analysis/by-service', { params: { from, to } })
   return data
 }
@@ -66,7 +80,7 @@ export const fetchImportStatus = async (): Promise<any> => {
   return data
 }
 
-export const fetchConfig = async (): Promise<any> => {
+export const fetchConfig = async (): Promise<AppConfig> => {
   const { data } = await api.get('/config')
   return data
 }
@@ -126,12 +140,12 @@ export const fetchInventorySummary = async (): Promise<any> => {
   return data
 }
 
-export const fetchExpiringServices = async (days = 30): Promise<any> => {
+export const fetchExpiringServices = async (days = 30): Promise<ExpiringService[]> => {
   const { data } = await api.get('/inventory/expiring', { params: { days } })
   return data
 }
 
-export const fetchByResourceType = async (from: string, to: string): Promise<any> => {
+export const fetchByResourceType = async (from: string, to: string): Promise<ResourceTypeBreakdown[]> => {
   const { data } = await api.get('/analysis/by-resource-type', { params: { from, to } })
   return data
 }
