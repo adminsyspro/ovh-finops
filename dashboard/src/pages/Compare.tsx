@@ -105,6 +105,18 @@ export function Compare() {
     )
   }
 
+  // Gate: A/B not yet resolved or summary queries still loading
+  if (!a || !b || sumA.isLoading || sumB.isLoading) return <CompareSkeleton />
+
+  // Gate: summary queries errored
+  if (sumA.isError || sumB.isError) {
+    return (
+      <div className="rounded-lg border border-destructive/50 p-6 text-center text-destructive">
+        {t("noDataAvailable")}
+      </div>
+    )
+  }
+
   // Totals
   const tA = sumA.data?.total ?? 0
   const tB = sumB.data?.total ?? 0
@@ -126,22 +138,38 @@ export function Compare() {
     moisB: svcMapB.get(name) ?? 0,
   }))
 
-  // Merge projects
-  const projMapA = new Map<string, number>(
-    (projA.data ?? []).map((p) => [p.projectName, p.total]),
+  // Merge projects by projectId (unique key); projectName is display-only
+  type ProjectEntry = { projectId: string; projectName: string; totalA: number; totalB: number }
+  const projMergeMap = new Map<string, ProjectEntry>()
+  for (const p of projA.data ?? []) {
+    projMergeMap.set(p.projectId, {
+      projectId: p.projectId,
+      projectName: p.projectName,
+      totalA: p.total,
+      totalB: 0,
+    })
+  }
+  for (const p of projB.data ?? []) {
+    const existing = projMergeMap.get(p.projectId)
+    if (existing) {
+      existing.totalB = p.total
+      // Prefer B's name if non-empty, else keep A's
+      if (p.projectName) existing.projectName = p.projectName
+    } else {
+      projMergeMap.set(p.projectId, {
+        projectId: p.projectId,
+        projectName: p.projectName,
+        totalA: 0,
+        totalB: p.total,
+      })
+    }
+  }
+  const mergedProjects: ProjectRow[] = Array.from(projMergeMap.values()).map(
+    ({ projectName, totalA, totalB }) => {
+      const v = totalA !== 0 ? ((totalB - totalA) / totalA) * 100 : null
+      return { projectName, totalA, totalB, variation: v }
+    },
   )
-  const projMapB = new Map<string, number>(
-    (projB.data ?? []).map((p) => [p.projectName, p.total]),
-  )
-  const allProjNames = Array.from(
-    new Set([...projMapA.keys(), ...projMapB.keys()]),
-  )
-  const mergedProjects: ProjectRow[] = allProjNames.map((projectName) => {
-    const pa = projMapA.get(projectName) ?? 0
-    const pb = projMapB.get(projectName) ?? 0
-    const v = pa !== 0 ? ((pb - pa) / pa) * 100 : null
-    return { projectName, totalA: pa, totalB: pb, variation: v }
-  })
 
   const columns: ColumnDef<ProjectRow, string>[] = [
     {

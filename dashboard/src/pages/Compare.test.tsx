@@ -92,3 +92,23 @@ test("Compare: empty state when no months", () => {
   wrap(<Compare />)
   expect(screen.getByText("Pas de données disponibles pour cette période")).toBeInTheDocument()
 })
+
+test("Compare: two projects with same name but different projectId produce two separate rows", () => {
+  const { useByProject } = queries
+  vi.mocked(useByProject).mockImplementation((from: string | null | undefined) =>
+    ok(
+      from === "2026-04-01"
+        ? [
+            { projectId: "p1", projectName: "Dup", total: 10, detailsCount: 1 },
+            { projectId: "p2", projectName: "Dup", total: 20, detailsCount: 1 },
+          ]
+        : [
+            { projectId: "p1", projectName: "Dup", total: 15, detailsCount: 1 },
+            { projectId: "p2", projectName: "Dup", total: 25, detailsCount: 1 },
+          ],
+    ) as any,
+  )
+  wrap(<Compare />)
+  // Two distinct projects keyed by projectId must produce 2 rows, not 1 collapsed row
+  expect(screen.getAllByText("Dup").length).toBeGreaterThanOrEqual(2)
+})
