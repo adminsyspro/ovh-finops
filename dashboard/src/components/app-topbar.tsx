@@ -6,13 +6,13 @@ import {
 } from "@/components/ui/breadcrumb"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
-import { NAV_ITEMS } from "@/components/app-sidebar"
+import { matchNav } from "@/components/app-sidebar"
 import { useLanguage } from "@/context/LanguageProvider"
 
 export function AppTopbar() {
   const { pathname } = useLocation()
   const { t } = useLanguage()
-  const current = NAV_ITEMS.find((i) => i.path === pathname)
+  const current = matchNav(pathname)
   return (
     <header className="flex h-14 items-center gap-2 border-b px-4">
       <SidebarTrigger />
