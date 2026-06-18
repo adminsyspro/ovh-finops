@@ -102,8 +102,9 @@ export function Inventory() {
   // Columns: VPS instances
   const vpsCols: ColumnDef<VpsInstance>[] = [
     {
-      accessorKey: "id",
+      id: "name",
       header: t("name"),
+      accessorFn: (row) => row.display_name || row.id,
     },
     {
       accessorKey: "model",
@@ -145,8 +146,9 @@ export function Inventory() {
   // Columns: Storage services
   const storageCols: ColumnDef<StorageService>[] = [
     {
-      accessorKey: "id",
+      id: "name",
       header: t("name"),
+      accessorFn: (row) => row.display_name || row.id,
     },
     {
       id: "type",
