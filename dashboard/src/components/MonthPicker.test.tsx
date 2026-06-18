@@ -1,5 +1,5 @@
 import { vi } from "vitest"
-import { render, screen } from "@testing-library/react"
+import { render, screen, act, waitFor } from "@testing-library/react"
 import { MonthPicker } from "./MonthPicker"
 import { PeriodProvider, usePeriod } from "@/context/PeriodContext"
 import { LanguageProvider } from "@/context/LanguageProvider"
@@ -44,4 +44,30 @@ test("MonthPicker affiche un libellé dérivé en anglais", () => {
   // server label is "Mai 2026"; the picker must show the English-derived label instead
   expect(screen.getByText("May 2026")).toBeInTheDocument()
   expect(screen.queryByText("Mai 2026")).not.toBeInTheDocument()
+})
+
+test("MonthPicker corrige un mois sélectionné absent de la liste", async () => {
+  function Harness() {
+    const { selectedMonth, setSelectedMonth } = usePeriod()
+    return (
+      <>
+        <button onClick={() => setSelectedMonth("1999-01")}>stale</button>
+        <MonthPicker />
+        <span data-testid="sel">{selectedMonth ?? "none"}</span>
+      </>
+    )
+  }
+  render(
+    <LanguageProvider defaultLanguage="fr">
+      <PeriodProvider>
+        <Harness />
+      </PeriodProvider>
+    </LanguageProvider>,
+  )
+  // after mount the picker defaults to the latest month
+  expect(screen.getByTestId("sel").textContent).toBe("2026-05")
+  // force a stale selection not present in the list
+  await act(async () => { screen.getByText("stale").click() })
+  // the effect must reset it back to the latest valid month
+  await waitFor(() => expect(screen.getByTestId("sel").textContent).toBe("2026-05"))
 })

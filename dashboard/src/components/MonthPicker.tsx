@@ -13,7 +13,7 @@ export function MonthPicker() {
   const { language } = useLanguage()
 
   useEffect(() => {
-    if (!selectedMonth && months && months.length > 0) {
+    if (months && months.length > 0 && !months.some((m) => m.value === selectedMonth)) {
       setSelectedMonth(months[0].value)
     }
   }, [months, selectedMonth, setSelectedMonth])
