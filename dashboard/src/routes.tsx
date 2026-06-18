@@ -1,6 +1,5 @@
 import { type RouteObject } from "react-router-dom"
 import { AppLayout } from "@/layouts/AppLayout"
-import { Placeholder } from "@/pages/_Placeholder"
 import { Overview } from "@/pages/Overview"
 import { Trends } from "@/pages/Trends"
 import { Projects } from "@/pages/Projects"
@@ -9,6 +8,7 @@ import { Compare } from "@/pages/Compare"
 import { ProjectDetail } from "@/pages/ProjectDetail"
 import { Consumption } from "@/pages/Consumption"
 import { Inventory } from "@/pages/Inventory"
+import { Billing } from "@/pages/Billing"
 
 export const routes: RouteObject[] = [
   {
@@ -23,7 +23,7 @@ export const routes: RouteObject[] = [
       { path: "trends", element: <Trends /> },
       { path: "consumption", element: <Consumption /> },
       { path: "inventory", element: <Inventory /> },
-      { path: "bills", element: <Placeholder title="Facturation" /> },
+      { path: "bills", element: <Billing /> },
     ],
   },
 ]

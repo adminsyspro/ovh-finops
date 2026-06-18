@@ -103,6 +103,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     paymentStatus: 'Statut paiement',
     paid: 'Payé',
     pending: 'En attente',
+    billDate: 'Date',
+    invoiceId: 'N° facture',
 
     // Inventory (Phase 3)
     inventory: 'Public Cloud',
@@ -271,6 +273,8 @@ export const translations: Record<Lang, Record<string, string>> = {
     paymentStatus: 'Payment status',
     paid: 'Paid',
     pending: 'Pending',
+    billDate: 'Date',
+    invoiceId: 'Invoice #',
 
     // Inventory (Phase 3)
     inventory: 'Public Cloud',
