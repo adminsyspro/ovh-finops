@@ -1,4 +1,4 @@
-import { formatCurrency, currencySymbol, formatMoney, formatMonthLabel } from "./format"
+import { formatCurrency, currencySymbol, formatMoney, formatMonthLabel, trendMonthLabel } from "./format"
 
 test("formatCurrency: 2 décimales, locale en/fr", () => {
   expect(formatCurrency(1234.5, "en")).toBe("1,234.50")
@@ -22,4 +22,9 @@ test("formatMoney accole le symbole", () => {
 test("formatMonthLabel dérive le libellé selon la langue", () => {
   expect(formatMonthLabel("2026-05", "fr")).toBe("Mai 2026")
   expect(formatMonthLabel("2026-05", "en")).toBe("May 2026")
+})
+
+test("trendMonthLabel: court + langue", () => {
+  expect(trendMonthLabel("2026-05", "en")).toBe("May 26")
+  expect(trendMonthLabel("2026-01", "fr")).toBe("Jan 26")
 })

@@ -28,3 +28,9 @@ export function formatMonthLabel(value: string, lang: Lang): string {
   const name = monthNames[lang][idx] ?? month
   return `${name} ${year}`
 }
+
+export function trendMonthLabel(yearMonth: string, lang: Lang): string {
+  const [year, month] = yearMonth.split("-")
+  const name = (monthNames[lang][Number(month) - 1] ?? month).slice(0, 3)
+  return `${name} ${year.slice(2)}`
+}
