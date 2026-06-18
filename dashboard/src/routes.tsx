@@ -2,6 +2,7 @@ import { type RouteObject } from "react-router-dom"
 import { AppLayout } from "@/layouts/AppLayout"
 import { Placeholder } from "@/pages/_Placeholder"
 import { Overview } from "@/pages/Overview"
+import { Trends } from "@/pages/Trends"
 
 export const routes: RouteObject[] = [
   {
@@ -13,7 +14,7 @@ export const routes: RouteObject[] = [
       { path: "projects/:id", element: <Placeholder title="Détail projet" /> },
       { path: "costs/services", element: <Placeholder title="Par service" /> },
       { path: "compare", element: <Placeholder title="Comparaison" /> },
-      { path: "trends", element: <Placeholder title="Tendances" /> },
+      { path: "trends", element: <Trends /> },
       { path: "consumption", element: <Placeholder title="Consommation" /> },
       { path: "inventory", element: <Placeholder title="Inventaire" /> },
       { path: "bills", element: <Placeholder title="Facturation" /> },
