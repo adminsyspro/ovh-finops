@@ -7,6 +7,7 @@ import { Projects } from "@/pages/Projects"
 import { Services } from "@/pages/Services"
 import { Compare } from "@/pages/Compare"
 import { ProjectDetail } from "@/pages/ProjectDetail"
+import { Consumption } from "@/pages/Consumption"
 
 export const routes: RouteObject[] = [
   {
@@ -19,7 +20,7 @@ export const routes: RouteObject[] = [
       { path: "costs/services", element: <Services /> },
       { path: "compare", element: <Compare /> },
       { path: "trends", element: <Trends /> },
-      { path: "consumption", element: <Placeholder title="Consommation" /> },
+      { path: "consumption", element: <Consumption /> },
       { path: "inventory", element: <Placeholder title="Inventaire" /> },
       { path: "bills", element: <Placeholder title="Facturation" /> },
     ],
