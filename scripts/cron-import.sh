@@ -1,5 +1,5 @@
 #!/bin/sh
-# cron-import.sh — Periodic differential import for OVH Cost Manager
+# cron-import.sh — Periodic differential import for OVH FinOps
 #
 # Runs a differential import every IMPORT_INTERVAL seconds (default: 86400 = 24h).
 # On first run, if the database has no bills, performs a full import instead.

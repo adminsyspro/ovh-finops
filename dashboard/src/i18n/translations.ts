@@ -2,7 +2,7 @@ export type Lang = "fr" | "en"
 export const translations: Record<Lang, Record<string, string>> = {
   fr: {
     // Header
-    appTitle: 'OVH Cost Manager',
+    appTitle: 'OVH FinOps',
     appSubtitle: 'Tableau de bord de suivi des coûts OVHcloud',
     export: 'Export',
     choose: 'Choisir...',
@@ -172,7 +172,7 @@ export const translations: Record<Lang, Record<string, string>> = {
   },
   en: {
     // Header
-    appTitle: 'OVH Cost Manager',
+    appTitle: 'OVH FinOps',
     appSubtitle: 'OVHcloud cost tracking dashboard',
     export: 'Export',
     choose: 'Choose...',

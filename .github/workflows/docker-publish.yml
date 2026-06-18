@@ -13,7 +13,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: mmaudet/ovh-cost-manager
+  IMAGE_NAME: adminsyspro/ovh-finops
 
 jobs:
   build-and-push:
@@ -63,7 +63,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.IMAGE_NAME }}
-          short-description: "OVH Cost Manager - Interactive dashboard for OVHcloud billing analysis"
+          short-description: "OVH FinOps - Interactive dashboard for OVHcloud billing analysis"
           readme-filepath: ./README.md
 
   create-release:
@@ -85,14 +85,14 @@ jobs:
             ## Docker Image
 
             ```bash
-            docker pull mmaudet/ovh-cost-manager:${{ github.ref_name }}
+            docker pull adminsyspro/ovh-finops:${{ github.ref_name }}
             ```
 
             ## Quick Start
 
             ```bash
             # Download docker-compose.yml
-            curl -O https://raw.githubusercontent.com/mmaudet/ovh-cost-manager/${{ github.ref_name }}/docker-compose.yml
+            curl -O https://raw.githubusercontent.com/adminsyspro/ovh-finops/${{ github.ref_name }}/docker-compose.yml
 
             # Create config file
             cp config.example.json config.json
@@ -102,7 +102,7 @@ jobs:
             docker-compose up -d
 
             # Import billing data
-            docker exec ovh-cost-manager node data/import.js --from 2025-01-01 --to 2025-12-31
+            docker exec ovh-finops node data/import.js --from 2025-01-01 --to 2025-12-31
             ```
 
             Access the dashboard at http://localhost:3001

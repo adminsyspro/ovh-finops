@@ -1,16 +1,16 @@
 {
-  "name": "ovh-cost-manager",
-  "description": "OVH Cost Manager - Interactive dashboard for OVHcloud billing analysis",
+  "name": "ovh-finops",
+  "description": "OVH FinOps - Interactive dashboard for OVHcloud billing analysis",
   "version": "2.2.0",
   "private": true,
-  "homepage": "https://github.com/mmaudet/ovh-cost-manager",
-  "author": "Michel-Marie MAUDET <mmaudet@linagora.com>",
+  "homepage": "https://github.com/adminsyspro/ovh-finops",
+  "author": "adminsyspro",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mmaudet/ovh-cost-manager"
+    "url": "https://github.com/adminsyspro/ovh-finops"
   },
   "bugs": {
-    "url": "https://github.com/mmaudet/ovh-cost-manager/issues"
+    "url": "https://github.com/adminsyspro/ovh-finops/issues"
   },
   "license": "MIT",
   "workspaces": [

@@ -1,13 +1,13 @@
 <p align="center">
-  <img src="docs/logo.png" alt="OVH Cost Manager" width="300">
+  <img src="docs/logo.png" alt="OVH FinOps" width="300">
 </p>
 
-<h1 align="center">OVH Cost Manager</h1>
+<h1 align="center">OVH FinOps</h1>
 
 <p align="center">
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-%3E%3D18.0.0-green.svg" alt="Node.js"></a>
-  <a href="https://hub.docker.com/r/mmaudet/ovh-cost-manager"><img src="https://img.shields.io/docker/v/mmaudet/ovh-cost-manager?label=Docker&logo=docker" alt="Docker"></a>
+  <a href="https://hub.docker.com/r/adminsyspro/ovh-finops"><img src="https://img.shields.io/docker/v/adminsyspro/ovh-finops?label=Docker&logo=docker" alt="Docker"></a>
 </p>
 
 <p align="center">
@@ -64,8 +64,8 @@
 
 ```bash
 # Clone and install
-git clone https://github.com/mmaudet/ovh-cost-manager.git
-cd ovh-cost-manager
+git clone https://github.com/adminsyspro/ovh-finops.git
+cd ovh-finops
 npm install
 
 # Configure OVH API credentials (see Configuration section below)
@@ -86,7 +86,7 @@ Open http://localhost:5173 to view the dashboard.
 ## Project Structure
 
 ```
-ovh-cost-manager/
+ovh-finops/
 ├── cli/                      # Command-line tools
 │   ├── index.js              # Invoice downloader
 │   ├── split-by-project.js   # Cost analyzer (via OVH API)
@@ -443,7 +443,7 @@ SSO_DOMAIN=example.com
 
 | Service     | Description      | Port                 |
 | ----------- | ---------------- | -------------------- |
-| `ocm`       | OVH Cost Manager | internal             |
+| `ocm`       | OVH FinOps       | internal             |
 | `traefik`   | Reverse proxy    | 80, 8080 (dashboard) |
 | `lemonldap` | SSO Portal       | internal             |
 
@@ -540,10 +540,4 @@ MIT License - see [LICENSE.txt](LICENSE.txt)
 
 ## Author
 
-**Michel-Marie MAUDET** - [mmaudet@linagora.com](mailto:mmaudet@linagora.com)
-
-### Contributors
-
-- **[Olivier Pernes](https://github.com/opernes)** — Improved service classification, Private Cloud/Backup support, parallel API imports
-
-*This project was inspired by the work of [Somanos Sar](https://github.com/somanos/ovh-bill).*
+**adminsyspro**

@@ -101,7 +101,7 @@ function outputMarkdownProject(result) {
   lines.push(`*${result.billsCount} facture${result.billsCount > 1 ? 's' : ''}*`);
   lines.push('');
   lines.push(`---`);
-  lines.push(`*Généré le ${new Date().toISOString().split('T')[0]} par ovh-cost-manager*`);
+  lines.push(`*Généré le ${new Date().toISOString().split('T')[0]} par ovh-finops*`);
 
   return lines.join('\n');
 }
@@ -125,7 +125,7 @@ function outputMarkdownMonth(result) {
   lines.push(`*${result.billsCount} facture${result.billsCount > 1 ? 's' : ''}*`);
   lines.push('');
   lines.push(`---`);
-  lines.push(`*Généré le ${new Date().toISOString().split('T')[0]} par ovh-cost-manager*`);
+  lines.push(`*Généré le ${new Date().toISOString().split('T')[0]} par ovh-finops*`);
 
   return lines.join('\n');
 }

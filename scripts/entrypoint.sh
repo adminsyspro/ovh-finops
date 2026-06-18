@@ -1,5 +1,5 @@
 #!/bin/sh
-# entrypoint.sh — Docker entrypoint for OVH Cost Manager
+# entrypoint.sh — Docker entrypoint for OVH FinOps
 #
 # Starts the cron import in background and the server in foreground.
 

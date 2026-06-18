@@ -1,4 +1,4 @@
-# OVH Cost Manager - Docker Image
+# ovh-finops - Docker Image
 # Multi-stage build: run npm/node natively on build host, avoid QEMU emulation
 
 # Stage 1: Build on the host platform (no QEMU)
