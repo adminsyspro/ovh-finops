@@ -36,8 +36,8 @@ export interface ExpiringService { id: string; display_name: string; type: strin
 export interface AppConfig { budget: number; currency: string }
 
 // Phase-3 interfaces (Consumption / Inventory / Billing)
-export interface ConsumptionCurrent { snapshot_date: string; period_start: string | null; period_end: string | null; current_total: number; currency: string; source: string; project_count?: number; details?: unknown }
-export interface ConsumptionForecast { snapshot_date: string; period_start: string; period_end: string; forecast_total: number; current_total: number; currency: string; progress: number; source?: string; days_elapsed?: number; days_in_month?: number }
+export interface ConsumptionCurrent { snapshot_date?: string; period_start?: string | null; period_end?: string | null; current_total: number; currency: string; source?: string; project_count?: number; details?: unknown }
+export interface ConsumptionForecast { snapshot_date?: string; period_start?: string; period_end?: string; forecast_total: number; current_total?: number; currency: string; progress?: number; source?: string; days_elapsed?: number; days_in_month?: number }
 export interface UsageHistoryRow { period_start: string; period_end: string; total: number; currency: string; service_type: string | null }
 export interface DedicatedServer { id: string; display_name: string; reverse: string | null; datacenter: string; os: string; state: string; cpu: string; ram_size: number; disk_info: { type: string; capacity: string; count: number }[]; bandwidth: number; expiration_date: string | null; renewal_type: string | null; imported_at: string }
 export interface VpsInstance { id: string; display_name: string; model: string; zone: string; state: string; os: string; vcpus: number; ram_mb: number; disk_gb: number; expiration_date: string | null; renewal_type: string | null; ip_addresses: string[]; imported_at: string }
@@ -169,7 +169,10 @@ export const fetchInventorySummary = async (): Promise<InventorySummary> => {
 
 // Phase 3: Bills
 export const fetchBills = async (from?: string, to?: string): Promise<Bill[]> => {
-  const { data } = await api.get('/bills', ...(from && to ? [{ params: { from, to } }] : []))
+  const params: Record<string, string> = {}
+  if (from) params.from = from
+  if (to) params.to = to
+  const { data } = await api.get('/bills', Object.keys(params).length ? { params } : undefined)
   return data
 }
 

@@ -44,5 +44,8 @@ test("phase-3 fetchers hit the right endpoints", async () => {
   await fetchAccountBalance(); expect(spy).toHaveBeenLastCalledWith("/account/balance")
   await fetchBillDetails("FR123"); expect(spy).toHaveBeenLastCalledWith("/bills/FR123/details")
   await fetchBills("a", "b"); expect(spy).toHaveBeenLastCalledWith("/bills", { params: { from: "a", to: "b" } })
+  // one-sided and no-arg bill filters
+  await fetchBills("a"); expect(spy).toHaveBeenLastCalledWith("/bills", { params: { from: "a" } })
+  await fetchBills(); expect(spy).toHaveBeenLastCalledWith("/bills", undefined)
   spy.mockRestore()
 })
