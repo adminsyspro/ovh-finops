@@ -8,6 +8,7 @@ import {
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar"
 import { useLanguage } from "@/context/LanguageProvider"
+import { Logo } from "@/components/Logo"
 
 export const NAV_ITEMS = [
   { titleKey: "overview", path: "/", icon: LayoutDashboard, group: "main" },
@@ -41,7 +42,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-4 py-3">
-        <img src="/logo.png" alt="ovh-finops" className="h-8 object-contain" />
+        <Logo className="h-8 w-auto text-primary" />
       </SidebarHeader>
       <SidebarContent>
         {GROUPS.map((g) => (
