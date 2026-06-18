@@ -1,6 +1,7 @@
 import { vi } from "vitest"
 import api, {
   fetchSummary, fetchByService, fetchExpiringServices, fetchMonths, type Summary,
+  fetchProjectsEnriched, fetchResourceTypeDetails, fetchMonthlyTrend, fetchProjectBuckets,
 } from "@/services/api"
 
 test("fetchSummary appelle /summary avec from/to et renvoie le corps typé", async () => {
@@ -24,5 +25,14 @@ test("fetchByService et fetchExpiringServices ciblent les bons endpoints", async
   expect(spy).toHaveBeenCalledWith("/inventory/expiring", { params: { days: 30 } })
   await fetchMonths()
   expect(spy).toHaveBeenCalledWith("/months")
+  spy.mockRestore()
+})
+
+test("phase-2 fetchers hit the right endpoints", async () => {
+  const spy = vi.spyOn(api, "get").mockResolvedValue({ data: [] })
+  await fetchProjectsEnriched(); expect(spy).toHaveBeenCalledWith("/projects/enriched")
+  await fetchResourceTypeDetails("vps", "a", "b"); expect(spy).toHaveBeenLastCalledWith("/analysis/resource-type-details", { params: { type: "vps", from: "a", to: "b" } })
+  await fetchMonthlyTrend(6); expect(spy).toHaveBeenLastCalledWith("/analysis/monthly-trend", { params: { months: 6 } })
+  await fetchProjectBuckets("p1", "a", "b"); expect(spy).toHaveBeenLastCalledWith("/projects/p1/buckets", { params: { from: "a", to: "b" } })
   spy.mockRestore()
 })

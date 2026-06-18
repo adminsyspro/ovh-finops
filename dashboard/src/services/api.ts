@@ -35,6 +35,18 @@ export interface ResourceTypeBreakdown { name: string; resource_type: string; va
 export interface ExpiringService { id: string; display_name: string; type: string; expiration_date: string }
 export interface AppConfig { budget: number; currency: string }
 
+// Phase-2 interfaces (Coûts data layer)
+export interface EnrichedProject { id: string; name: string; description: string | null; status: string | null; instance_count: number; consumption_total: number; period_start: string | null; period_end: string | null }
+export interface ProjectCostPoint { date: string; total: number; service_type: string }
+export interface CloudInstance { id: string; project_id: string; name: string; flavor: string; plan_code: string | null; region: string; status: string; created_at: string | null; monthly_billing: number; imported_at: string }
+export interface ProjectQuota { id: number; project_id: string; region: string; max_cores: number | null; max_instances: number | null; max_ram_mb: number | null; used_cores: number | null; used_instances: number | null; used_ram_mb: number | null; snapshot_date: string }
+export interface ProjectBucket { name: string; type: string; total: number }
+export interface ProjectConsumptionRow { id: number; project_id: string; period_start: string; period_end: string; resource_type: string; resource_id: string | null; resource_name: string; quantity: number; unit: string; unit_price: number; total_price: number; region: string | null; imported_at: string }
+export interface InstanceTotal { total: number }
+export interface ResourceTypeDetail { domain: string; description: string | null; total: number; line_count: number }
+export interface MonthlyTrendPoint { month: string; yearMonth: string; cost: number }
+export interface DailyTrendPoint { date: string; day: number; cost: number }
+
 export const fetchMonths = async (): Promise<Month[]> => {
   const { data } = await api.get('/months')
   return data
@@ -50,7 +62,7 @@ export const fetchProjects = async (): Promise<any> => {
   return data
 }
 
-export const fetchProjectsEnriched = async (): Promise<any> => {
+export const fetchProjectsEnriched = async (): Promise<EnrichedProject[]> => {
   const { data } = await api.get('/projects/enriched')
   return data
 }
@@ -65,12 +77,12 @@ export const fetchByService = async (from: string, to: string): Promise<ServiceB
   return data
 }
 
-export const fetchDailyTrend = async (from: string, to: string): Promise<any> => {
+export const fetchDailyTrend = async (from: string, to: string): Promise<DailyTrendPoint[]> => {
   const { data } = await api.get('/analysis/daily-trend', { params: { from, to } })
   return data
 }
 
-export const fetchMonthlyTrend = async (months = 6): Promise<any> => {
+export const fetchMonthlyTrend = async (months = 6): Promise<MonthlyTrendPoint[]> => {
   const { data } = await api.get('/analysis/monthly-trend', { params: { months } })
   return data
 }
@@ -150,34 +162,39 @@ export const fetchByResourceType = async (from: string, to: string): Promise<Res
   return data
 }
 
-export const fetchResourceTypeDetails = async (type: string, from: string, to: string): Promise<any> => {
+export const fetchResourceTypeDetails = async (type: string, from: string, to: string): Promise<ResourceTypeDetail[]> => {
   const { data } = await api.get('/analysis/resource-type-details', { params: { type, from, to } })
   return data
 }
 
 // Phase 4: Cloud project details
-export const fetchProjectConsumption = async (projectId: string, from: string, to: string): Promise<any> => {
+export const fetchProjectConsumption = async (projectId: string, from: string, to: string): Promise<ProjectConsumptionRow[]> => {
   const { data } = await api.get(`/projects/${projectId}/consumption`, { params: { from, to } })
   return data
 }
 
-export const fetchProjectInstances = async (projectId: string): Promise<any> => {
+export const fetchProjectInstances = async (projectId: string): Promise<CloudInstance[]> => {
   const { data } = await api.get(`/projects/${projectId}/instances`)
   return data
 }
 
-export const fetchProjectQuotas = async (projectId: string): Promise<any> => {
+export const fetchProjectQuotas = async (projectId: string): Promise<ProjectQuota[]> => {
   const { data } = await api.get(`/projects/${projectId}/quotas`)
   return data
 }
 
-export const fetchProjectBuckets = async (projectId: string, from: string, to: string): Promise<any> => {
+export const fetchProjectBuckets = async (projectId: string, from: string, to: string): Promise<ProjectBucket[]> => {
   const { data } = await api.get(`/projects/${projectId}/buckets`, { params: { from, to } })
   return data
 }
 
-export const fetchProjectInstanceTotal = async (projectId: string, from: string, to: string): Promise<any> => {
+export const fetchProjectInstanceTotal = async (projectId: string, from: string, to: string): Promise<InstanceTotal> => {
   const { data } = await api.get(`/projects/${projectId}/instance-total`, { params: { from, to } })
+  return data
+}
+
+export const fetchProjectCosts = async (id: string, from: string, to: string): Promise<ProjectCostPoint[]> => {
+  const { data } = await api.get(`/projects/${id}/costs`, { params: { from, to } })
   return data
 }
 
