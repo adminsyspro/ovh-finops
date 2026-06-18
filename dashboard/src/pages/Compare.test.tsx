@@ -62,10 +62,12 @@ test("Compare: renders both month totals (400 for A, 500 for B)", () => {
   expect(screen.getAllByText(/500,00/).length).toBeGreaterThanOrEqual(1)
 })
 
-test("Compare: renders variation percentage", () => {
+test("Compare: renders variation percentage and absolute delta amount", () => {
   wrap(<Compare />)
   // monthA=2026-04 total=400, monthB=2026-05 total=500 → (500-400)/400*100 = +25.0%
   expect(screen.getAllByText(/\+25,0%|\+25\.0%/).length).toBeGreaterThanOrEqual(1)
+  // Absolute delta: 500 - 400 = 100 → "100,00" in French formatting
+  expect(screen.getAllByText(/100,00/).length).toBeGreaterThanOrEqual(1)
 })
 
 test("Compare: renders merged project row 'Proj One'", () => {

@@ -250,7 +250,7 @@ export function Compare() {
         />
         <KpiCard
           label={t("variation")}
-          value={t("variation")}
+          value={formatMoney(tB - tA, language, currency)}
           delta={variation}
           deltaLabel=""
         />
