@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageToggle } from "@/components/language-toggle"
+import { MonthPicker } from "@/components/MonthPicker"
 import { matchNav } from "@/components/app-sidebar"
 import { useLanguage } from "@/context/LanguageProvider"
 
@@ -25,6 +26,7 @@ export function AppTopbar() {
         </BreadcrumbList>
       </Breadcrumb>
       <div className="ml-auto flex items-center gap-1">
+        <MonthPicker />
         <LanguageToggle />
         <ThemeToggle />
       </div>
