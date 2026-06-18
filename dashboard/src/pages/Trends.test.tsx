@@ -101,3 +101,8 @@ test("Trends page: projection uses configured currency (USD → $)", () => {
   const projectionNode = screen.getByText(/~/)
   expect(projectionNode.textContent).toMatch(/\$/)
 })
+
+test("Trends page: daily trend block is removed", () => {
+  wrap(<Trends />)
+  expect(screen.queryByText("Daily trend")).not.toBeInTheDocument()
+})

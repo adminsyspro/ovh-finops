@@ -11,8 +11,8 @@ export function SectionCard({
 }) {
   return (
     <Card className={className}>
-      <CardHeader className="flex flex-row items-center justify-between gap-2">
-        <CardTitle className="text-base">{title}</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 border-b pb-4">
+        <CardTitle className="text-sm font-semibold">{title}</CardTitle>
         {actions}
       </CardHeader>
       <CardContent className={cn("pt-0")}>{children}</CardContent>

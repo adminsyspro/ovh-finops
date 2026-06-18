@@ -3,6 +3,7 @@ import api, {
   fetchSummary, fetchByService, fetchExpiringServices, fetchMonths, type Summary,
   fetchProjectsEnriched, fetchResourceTypeDetails, fetchMonthlyTrend, fetchProjectBuckets,
   fetchBills, fetchBillDetails, fetchInventorySummary, fetchAccountBalance,
+  fetchConsumptionCurrent, fetchConsumptionForecast,
 } from "@/services/api"
 
 test("fetchSummary appelle /summary avec from/to et renvoie le corps typé", async () => {
@@ -31,7 +32,8 @@ test("fetchByService et fetchExpiringServices ciblent les bons endpoints", async
 
 test("phase-2 fetchers hit the right endpoints", async () => {
   const spy = vi.spyOn(api, "get").mockResolvedValue({ data: [] })
-  await fetchProjectsEnriched(); expect(spy).toHaveBeenCalledWith("/projects/enriched")
+  await fetchProjectsEnriched(); expect(spy).toHaveBeenCalledWith("/projects/enriched", undefined)
+  await fetchProjectsEnriched("a", "b"); expect(spy).toHaveBeenLastCalledWith("/projects/enriched", { params: { from: "a", to: "b" } })
   await fetchResourceTypeDetails("vps", "a", "b"); expect(spy).toHaveBeenLastCalledWith("/analysis/resource-type-details", { params: { type: "vps", from: "a", to: "b" } })
   await fetchMonthlyTrend(6); expect(spy).toHaveBeenLastCalledWith("/analysis/monthly-trend", { params: { months: 6 } })
   await fetchProjectBuckets("p1", "a", "b"); expect(spy).toHaveBeenLastCalledWith("/projects/p1/buckets", { params: { from: "a", to: "b" } })
@@ -47,5 +49,7 @@ test("phase-3 fetchers hit the right endpoints", async () => {
   // one-sided and no-arg bill filters
   await fetchBills("a"); expect(spy).toHaveBeenLastCalledWith("/bills", { params: { from: "a" } })
   await fetchBills(); expect(spy).toHaveBeenLastCalledWith("/bills", undefined)
+  await fetchConsumptionCurrent("a", "b"); expect(spy).toHaveBeenLastCalledWith("/consumption/current", { params: { from: "a", to: "b" } })
+  await fetchConsumptionForecast("a", "b"); expect(spy).toHaveBeenLastCalledWith("/consumption/forecast", { params: { from: "a", to: "b" } })
   spy.mockRestore()
 })

@@ -58,7 +58,7 @@ export function Billing() {
   const netBalance =
     balance?.net_balance !== undefined
       ? balance.net_balance
-      : (balance?.credit_balance ?? 0) - (balance?.debt_balance ?? 0)
+      : (balance?.credit_balance ?? 0) + (balance?.deposit_total ?? 0) - (balance?.debt_balance ?? 0)
 
   const bills = billsQuery.data ?? []
   const selectedBill = selectedBillId ? bills.find((b) => b.id === selectedBillId) ?? null : null

@@ -47,6 +47,17 @@ test("useSelectedMonth: from/to come from the selected month", () => {
   expect(result.current.to).toBe("2026-05-31")
 })
 
+test("useSelectedMonth: from/to couvrent l'année complète quand une année est sélectionnée", async () => {
+  const { usePeriod } = await import("@/context/PeriodContext")
+  vi.mocked(usePeriod).mockReturnValueOnce({ selectedMonth: "year:2026", setSelectedMonth: () => {} } as any)
+  const { result } = renderHook(() => useSelectedMonth(), {
+    wrapper: PeriodProvider,
+  })
+  expect(result.current.selected?.kind).toBe("year")
+  expect(result.current.from).toBe("2026-01-01")
+  expect(result.current.to).toBe("2026-12-31")
+})
+
 test("useSelectedMonth: months array is exposed", () => {
   const { result } = renderHook(() => useSelectedMonth(), {
     wrapper: PeriodProvider,

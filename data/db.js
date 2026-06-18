@@ -540,7 +540,29 @@ const consumptionOps = {
       params.push(fromDate, toDate);
     }
     query += ' ORDER BY period_start DESC';
-    return db.prepare(query).all(...params);
+    const history = db.prepare(query).all(...params);
+    if (history.length > 0) return history;
+
+    let fallbackQuery = `
+      SELECT
+        b.date as period_start,
+        b.date as period_end,
+        d.service_type,
+        SUM(d.total_price) as total,
+        COALESCE(MAX(b.currency), 'EUR') as currency
+      FROM bill_details d
+      JOIN bills b ON d.bill_id = b.id
+    `;
+    const fallbackParams = [];
+    if (fromDate && toDate) {
+      fallbackQuery += ' WHERE b.date >= ? AND b.date <= ?';
+      fallbackParams.push(fromDate, toDate);
+    }
+    fallbackQuery += `
+      GROUP BY b.date, d.service_type
+      ORDER BY b.date DESC
+    `;
+    return db.prepare(fallbackQuery).all(...fallbackParams);
   },
 
   clearHistory: () => {
@@ -644,19 +666,43 @@ const inventoryOps = {
 
   getAllStorage: () => {
     const db = getDb();
-    return db.prepare('SELECT * FROM storage_services ORDER BY display_name').all();
+    const storageServices = db.prepare('SELECT * FROM storage_services').all();
+    const cloudBuckets = db.prepare(`
+      SELECT
+        'cloud-storage:' || project_id || ':' || resource_name || ':' || COALESCE(region, '') as id,
+        CASE
+          WHEN UPPER(COALESCE(region, '')) LIKE '%ARCHIVE%' THEN 'cold_archive'
+          ELSE 'object_storage'
+        END as service_type,
+        resource_name as display_name,
+        region,
+        NULL as total_size_gb,
+        NULL as used_size_gb,
+        NULL as share_count,
+        NULL as expiration_date,
+        MAX(imported_at) as imported_at
+      FROM project_consumption
+      WHERE resource_type = 'storage'
+        AND resource_name IS NOT NULL
+        AND TRIM(resource_name) <> ''
+        AND UPPER(TRIM(resource_name)) <> UPPER(TRIM(COALESCE(region, '')))
+        AND LOWER(TRIM(resource_name)) NOT GLOB '*_error'
+      GROUP BY project_id, resource_name, region
+    `).all();
+
+    return [...storageServices, ...cloudBuckets]
+      .sort((a, b) => (a.display_name || a.id).localeCompare(b.display_name || b.id));
   },
 
   getSummary: () => {
     const db = getDb();
     const servers = db.prepare('SELECT COUNT(*) as count FROM dedicated_servers').get();
     const vps = db.prepare('SELECT COUNT(*) as count FROM vps_instances').get();
-    const storage = db.prepare('SELECT COUNT(*) as count FROM storage_services').get();
     const projects = db.prepare('SELECT COUNT(*) as count FROM projects').get();
     return {
       servers: servers.count,
       vps: vps.count,
-      storage: storage.count,
+      storage: inventoryOps.getAllStorage().length,
       cloud_projects: projects.count
     };
   },
@@ -912,39 +958,80 @@ const cloudDetailOps = {
   // Get bucket details for a project
   getBucketsByProject: (projectId, fromDate, toDate) => {
     const db = getDb();
-    // Extraction du nom du bucket et de la classe de stockage depuis la description
-    // Exemples de description :
-    //   "Stockage Standard - Bucket mybucket"
-    //   "Stockage Archive - Bucket mybucket"
-    //   "Stockage Standard Infrequent - Bucket mybucket"
-    // On extrait la classe (avant "- Bucket") et le nom du bucket (après "Bucket ")
+    const structured = db.prepare(`
+      SELECT
+        resource_name as bucket,
+        CASE
+          WHEN UPPER(COALESCE(region, '')) LIKE '%ARCHIVE%' THEN 'Cold Archive'
+          ELSE 'Standard'
+        END as class,
+        region,
+        ROUND(SUM(total_price), 2) as total,
+        SUM(quantity) as usage_quantity,
+        MAX(unit) as usage_unit
+      FROM project_consumption
+      WHERE project_id = ?
+        AND resource_type = 'storage'
+        AND resource_name IS NOT NULL
+        AND TRIM(resource_name) <> ''
+        AND UPPER(TRIM(resource_name)) <> UPPER(TRIM(COALESCE(region, '')))
+        AND LOWER(TRIM(resource_name)) NOT GLOB '*_error'
+        AND (? IS NULL OR period_start >= ?)
+        AND (? IS NULL OR period_end <= ?)
+      GROUP BY resource_name, class, region
+      ORDER BY total DESC, bucket
+    `).all(projectId, fromDate || null, fromDate || null, toDate || null, toDate || null);
+
+    if (structured.length > 0) return structured;
+
+    // Fallback historique: extraction depuis les libellés de facture quand l'import
+    // Cloud détaillé n'a pas encore peuplé project_consumption.
     return db.prepare(`
-      SELECT 
-        TRIM(
-          SUBSTR(description, 
-            INSTR(description, 'Bucket') + 7
-          )
-        ) as bucket,
-        TRIM(
-          REPLACE(
-            SUBSTR(description, 1, INSTR(description, '- Bucket')-1),
-            'Stockage', ''
-          )
-        ) as class,
-        ROUND(SUM(total_price), 2) as total
-      FROM bill_details d
-      JOIN bills b ON d.bill_id = b.id
-      WHERE d.project_id = ?
-        AND b.date >= ? AND b.date <= ?
-        AND (
-          LOWER(description) LIKE 'stockage standard - bucket%'
-          OR LOWER(description) LIKE 'stockage high performance - bucket%'
-          OR LOWER(description) LIKE 'stockage standard infrequent%bucket%'
-          OR LOWER(description) LIKE 'stockage archive - bucket%'
-        )
-        AND LOWER(description) NOT LIKE '%bande passante%'
-      GROUP BY bucket, class
-      ORDER BY total DESC
+      WITH parsed AS (
+        SELECT
+          TRIM(
+            CASE
+              WHEN INSTR(SUBSTR(description, INSTR(description, 'Bucket ') + 7), ' sur la région ') > 0
+              THEN SUBSTR(
+                SUBSTR(description, INSTR(description, 'Bucket ') + 7),
+                1,
+                INSTR(SUBSTR(description, INSTR(description, 'Bucket ') + 7), ' sur la région ') - 1
+              )
+              ELSE SUBSTR(description, INSTR(description, 'Bucket ') + 7)
+            END
+          ) as bucket,
+          TRIM(
+            CASE
+              WHEN INSTR(description, ' sur la région ') > 0
+              THEN SUBSTR(description, INSTR(description, ' sur la région ') + LENGTH(' sur la région '))
+              ELSE ''
+            END
+          ) as region,
+          description,
+          total_price
+        FROM bill_details d
+        JOIN bills b ON d.bill_id = b.id
+        WHERE d.project_id = ?
+          AND b.date >= ? AND b.date <= ?
+          AND LOWER(description) LIKE 'stockage% - bucket %'
+          AND LOWER(description) NOT LIKE '%bande passante%'
+      )
+      SELECT
+        bucket,
+        CASE
+          WHEN LOWER(description) LIKE '%archive%' OR UPPER(region) LIKE '%ARCHIVE%' THEN 'Cold Archive'
+          WHEN LOWER(description) LIKE '%high performance%' THEN 'High Performance'
+          WHEN LOWER(description) LIKE '%infrequent%' THEN 'Standard Infrequent'
+          ELSE 'Standard'
+        END as class,
+        region,
+        ROUND(SUM(total_price), 2) as total,
+        NULL as usage_quantity,
+        NULL as usage_unit
+      FROM parsed
+      WHERE bucket <> ''
+      GROUP BY bucket, class, region
+      ORDER BY total DESC, bucket
     `).all(projectId, fromDate, toDate);
   },
 

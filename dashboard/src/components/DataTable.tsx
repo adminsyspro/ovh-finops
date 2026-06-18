@@ -3,7 +3,7 @@ import {
   type ColumnDef, type SortingState, flexRender, getCoreRowModel,
   getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown, Search } from "lucide-react"
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table"
@@ -38,13 +38,16 @@ export function DataTable<TData, TValue>({
   })
   return (
     <div className="space-y-3">
-      <Input
-        value={globalFilter}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder={searchPlaceholder ?? `${t("choose")}…`}
-        className="max-w-xs"
-      />
-      <div className="rounded-md border">
+      <div className="relative max-w-sm">
+        <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          placeholder={searchPlaceholder ?? `${t("choose")}…`}
+          className="h-9 bg-card pl-8"
+        />
+      </div>
+      <div className="overflow-hidden rounded-lg border bg-card">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((hg) => (
@@ -56,7 +59,7 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder ? null : canSort ? (
                         <Button
                           type="button"
-                          variant="ghost" size="sm" className="-ml-3 h-8"
+                          variant="ghost" size="sm" className="-ml-3 h-8 text-xs font-semibold"
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}

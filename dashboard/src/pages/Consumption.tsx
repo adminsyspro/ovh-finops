@@ -1,10 +1,10 @@
-import { usePeriod } from "@/context/PeriodContext"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
   useConsumptionCurrent,
   useConsumptionForecast,
   useConsumptionHistory,
 } from "@/hooks/queries"
+import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { SectionCard } from "@/components/SectionCard"
 import { TrendLineChart } from "@/components/charts/TrendLineChart"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -36,23 +36,33 @@ function ConsumptionSkeleton() {
 
 export function Consumption() {
   const { t, language } = useLanguage()
-  const { from, to } = usePeriod()
+  const { monthsQuery, months, selected, from, to } = useSelectedMonth()
 
-  const current = useConsumptionCurrent()
-  const forecast = useConsumptionForecast()
+  const current = useConsumptionCurrent(from, to)
+  const forecast = useConsumptionForecast(from, to)
   const history = useConsumptionHistory(from, to)
 
-  if (current.isLoading || forecast.isLoading) {
+  if (monthsQuery.isLoading || current.isLoading || forecast.isLoading) {
     return <ConsumptionSkeleton />
   }
 
-  if (current.isError || forecast.isError) {
+  if (monthsQuery.isError || current.isError || forecast.isError) {
     return (
       <div className="rounded-lg border border-destructive/50 p-6 text-center text-destructive">
         {t("noDataAvailable")}
       </div>
     )
   }
+
+  if (months.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+        {t("noDataAvailable")}
+      </div>
+    )
+  }
+
+  if (!selected) return <ConsumptionSkeleton />
 
   const currentData = current.data
   const forecastData = forecast.data
@@ -74,8 +84,11 @@ export function Consumption() {
   }
 
   // Compute forecast sublabel
+  const forecastIsSelectedPeriod = forecastData?.source === "selected_period"
   let forecastSublabel: string
-  if (forecastData?.days_elapsed != null) {
+  if (forecastIsSelectedPeriod && forecastData?.period_start && forecastData?.period_end) {
+    forecastSublabel = `${forecastData.period_start} → ${forecastData.period_end}`
+  } else if (forecastData?.days_elapsed != null) {
     forecastSublabel = `${forecastData.days_elapsed}/${forecastData.days_in_month ?? "?"} ${t("days")}`
   } else {
     forecastSublabel = t("forecastEndOfMonth")
@@ -85,13 +98,13 @@ export function Consumption() {
   const historyRows = history.data ?? []
   const aggregated = new Map<string, number>()
   for (const row of historyRows) {
-    const key = row.period_start
+    const key = row.period_start.slice(0, 7)
     aggregated.set(key, (aggregated.get(key) ?? 0) + row.total)
   }
   const historyChartData = Array.from(aggregated.entries())
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([period_start, cost]) => ({
-      label: period_start.slice(0, 7),
+    .map(([label, cost]) => ({
+      label,
       cost,
     }))
 
@@ -100,9 +113,9 @@ export function Consumption() {
       {/* Two KPI cards: current + forecast */}
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Current consumption card */}
-        <div className="rounded-xl border border-l-4 border-l-primary bg-card p-5 shadow-sm space-y-2">
+        <div className="space-y-2 rounded-lg border border-l-4 border-l-primary bg-card p-5 shadow-xs">
           <p className="text-sm text-muted-foreground">{t("currentConsumption")}</p>
-          <p className="text-2xl font-semibold tracking-tight">
+          <p className="text-2xl font-semibold">
             {formatMoney(currentTotal, language, currentCurrency)}
           </p>
           <ProgressBar pct={progressPct} />
@@ -110,9 +123,11 @@ export function Consumption() {
         </div>
 
         {/* Forecast card */}
-        <div className="rounded-xl border border-l-4 border-l-primary bg-card p-5 shadow-sm space-y-2">
-          <p className="text-sm text-muted-foreground">{t("forecastEndOfMonth")}</p>
-          <p className="text-2xl font-semibold tracking-tight">
+        <div className="space-y-2 rounded-lg border border-l-4 border-l-primary bg-card p-5 shadow-xs">
+          <p className="text-sm text-muted-foreground">
+            {forecastIsSelectedPeriod ? t("selectedPeriod") : t("forecastEndOfMonth")}
+          </p>
+          <p className="text-2xl font-semibold">
             {formatMoney(forecastTotal, language, forecastCurrency)}
           </p>
           <ProgressBar pct={Math.min(forecastData?.progress ?? 0, 100)} />
@@ -122,7 +137,7 @@ export function Consumption() {
 
       {/* Usage history */}
       <SectionCard title={t("consumptionHistory")}>
-        <TrendLineChart data={historyChartData} />
+        <TrendLineChart data={historyChartData} variant="area" />
       </SectionCard>
     </div>
   )

@@ -1,4 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { useLanguage } from "@/context/LanguageProvider"
 
@@ -14,26 +15,39 @@ export function KpiCard({
 }) {
   const { t } = useLanguage()
   const resolvedSuffix = deltaLabel !== undefined ? deltaLabel : t("vsPreviousMonth")
+  const hasDelta = delta !== undefined
+  const positive = typeof delta === "number" && delta > 0
+  const negative = typeof delta === "number" && delta < 0
+
   return (
-    <Card className={cn(accent && "border-l-4 border-l-primary")}>
+    <Card className={cn("overflow-hidden", accent && "border-primary/25 bg-primary/[0.035]")}>
       <CardContent className="p-5">
-        <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
-        {sublabel && <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>}
-        {delta !== undefined && (
-          delta === null ? (
-            <p className="mt-2 text-sm text-muted-foreground">{t("noPreviousData")}</p>
-          ) : (
-            <p
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          {hasDelta && delta !== null && (
+            <Badge
+              variant="secondary"
               className={cn(
-                "mt-2 text-sm",
-                delta > 0 ? "text-red-500" : delta < 0 ? "text-green-500" : "text-muted-foreground",
+                "rounded-md px-1.5 text-[11px]",
+                positive && "bg-red-50 text-red-500 dark:bg-red-500/15 dark:text-red-300",
+                negative && "bg-emerald-50 text-green-500 dark:bg-emerald-500/15 dark:text-emerald-300",
               )}
             >
-              {delta > 0 ? "+" : ""}{delta.toFixed(1)}%{resolvedSuffix ? ` ${resolvedSuffix}` : ""}
-            </p>
-          )
-        )}
+              {delta > 0 ? "+" : ""}{delta.toFixed(1)}%
+            </Badge>
+          )}
+        </div>
+        <p className="mt-3 text-2xl font-semibold leading-none">{value}</p>
+        <div className="mt-3 min-h-5 text-xs text-muted-foreground">
+          {sublabel && <p>{sublabel}</p>}
+          {delta !== undefined && (
+            delta === null ? (
+              <p>{t("noPreviousData")}</p>
+            ) : (
+              <p>{resolvedSuffix}</p>
+            )
+          )}
+        </div>
       </CardContent>
     </Card>
   )

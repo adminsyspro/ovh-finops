@@ -44,7 +44,7 @@ const { useMonths } = queries
 
 test("Services page: renders by-service donut legend 'Compute'", () => {
   wrap(<Services />)
-  expect(screen.getByText("Compute")).toBeInTheDocument()
+  expect(screen.getAllByText("Compute").length).toBeGreaterThanOrEqual(1)
 })
 
 test("Services page: renders resource-type row 'Public Cloud'", () => {
@@ -57,6 +57,13 @@ test("Services page: renders section titles", () => {
   wrap(<Services />)
   expect(screen.getByText("Répartition par service")).toBeInTheDocument()
   expect(screen.getByText("Répartition par type de ressource")).toBeInTheDocument()
+})
+
+test("Services page: renders enriched KPI cards", () => {
+  wrap(<Services />)
+  expect(screen.getByText("Service principal")).toBeInTheDocument()
+  expect(screen.getAllByText("Familles de services").length).toBeGreaterThanOrEqual(1)
+  expect(screen.getByText("Ressources suivies")).toBeInTheDocument()
 })
 
 test("Services page: renders column headers", () => {

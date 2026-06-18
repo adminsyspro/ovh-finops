@@ -3,6 +3,13 @@ import { render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { LanguageProvider } from "@/context/LanguageProvider"
 
+vi.mock("@/hooks/useSelectedMonth", () => ({
+  useSelectedMonth: () => ({
+    from: "2026-05-01",
+    to: "2026-05-31",
+  }),
+}))
+
 vi.mock("@/hooks/queries", () => {
   const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
   return {

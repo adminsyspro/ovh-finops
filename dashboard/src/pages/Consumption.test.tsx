@@ -2,8 +2,15 @@ import { vi } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { LanguageProvider } from "@/context/LanguageProvider"
 
-vi.mock("@/context/PeriodContext", () => ({
-  usePeriod: () => ({ from: "2026-01-01", to: "2026-06-18" }),
+vi.mock("@/hooks/useSelectedMonth", () => ({
+  useSelectedMonth: () => ({
+    monthsQuery: { isLoading: false, isError: false },
+    months: [{ value: "year:2026", from: "2026-01-01", to: "2026-12-31" }],
+    selected: { value: "year:2026", from: "2026-01-01", to: "2026-12-31", kind: "year" },
+    previous: null,
+    from: "2026-01-01",
+    to: "2026-12-31",
+  }),
 }))
 
 const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
@@ -43,6 +50,12 @@ function wrap(ui: React.ReactNode) {
 test("Consumption page: currentConsumption label is present", () => {
   wrap(<Consumption />)
   expect(screen.getByText("Consommation en cours")).toBeInTheDocument()
+})
+
+test("Consumption page: passe la période sélectionnée aux KPI", () => {
+  wrap(<Consumption />)
+  expect(queries.useConsumptionCurrent).toHaveBeenCalledWith("2026-01-01", "2026-12-31")
+  expect(queries.useConsumptionForecast).toHaveBeenCalledWith("2026-01-01", "2026-12-31")
 })
 
 test("Consumption page: formatted current_total is present", () => {

@@ -710,25 +710,44 @@ async function importCloudDetails(projectIds) {
 
         // Process hourly usage
         if (usage.hourlyUsage) {
-          const hourlyTypes = ['instance', 'volume', 'snapshot', 'objectStorage'];
+          const hourlyTypes = ['instance', 'volume', 'snapshot', 'objectStorage', 'storage'];
           for (const rt of hourlyTypes) {
             const items = usage.hourlyUsage[rt] || [];
             for (const item of items) {
-              for (const detail of (item.details || [])) {
-                db.cloudDetails.insertConsumption({
-                  project_id: projectId,
-                  period_start: monthStart,
-                  period_end: now,
-                  resource_type: rt,
-                  resource_id: detail.instanceId || detail.resourceId || detail.volumeId || '',
-                  resource_name: item.reference || '',
-                  quantity: detail.quantity?.value || 0,
-                  unit: detail.quantity?.unit || '',
-                  unit_price: 0,
-                  total_price: detail.totalPrice || 0,
-                  region: item.region || ''
-                });
+              const details = item.details || [];
+              if (details.length > 0) {
+                for (const detail of details) {
+                  db.cloudDetails.insertConsumption({
+                    project_id: projectId,
+                    period_start: monthStart,
+                    period_end: now,
+                    resource_type: rt,
+                    resource_id: detail.instanceId || detail.resourceId || detail.volumeId || '',
+                    resource_name: item.reference || item.bucketName || '',
+                    quantity: detail.quantity?.value || 0,
+                    unit: detail.quantity?.unit || '',
+                    unit_price: 0,
+                    total_price: detail.totalPrice || 0,
+                    region: item.region || ''
+                  });
+                }
+                continue;
               }
+
+              const quantity = item.stored?.quantity || item.quantity;
+              db.cloudDetails.insertConsumption({
+                project_id: projectId,
+                period_start: monthStart,
+                period_end: now,
+                resource_type: rt,
+                resource_id: item.bucketName || item.reference || item.name || '',
+                resource_name: item.bucketName || item.reference || item.name || item.region || '',
+                quantity: quantity?.value || 0,
+                unit: quantity?.unit || '',
+                unit_price: 0,
+                total_price: item.totalPrice || item.stored?.totalPrice || 0,
+                region: item.region || ''
+              });
             }
           }
         }
