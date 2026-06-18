@@ -2,6 +2,7 @@ import { vi } from "vitest"
 import api, {
   fetchSummary, fetchByService, fetchExpiringServices, fetchMonths, type Summary,
   fetchProjectsEnriched, fetchResourceTypeDetails, fetchMonthlyTrend, fetchProjectBuckets,
+  fetchBills, fetchBillDetails, fetchInventorySummary, fetchAccountBalance,
 } from "@/services/api"
 
 test("fetchSummary appelle /summary avec from/to et renvoie le corps typé", async () => {
@@ -34,5 +35,14 @@ test("phase-2 fetchers hit the right endpoints", async () => {
   await fetchResourceTypeDetails("vps", "a", "b"); expect(spy).toHaveBeenLastCalledWith("/analysis/resource-type-details", { params: { type: "vps", from: "a", to: "b" } })
   await fetchMonthlyTrend(6); expect(spy).toHaveBeenLastCalledWith("/analysis/monthly-trend", { params: { months: 6 } })
   await fetchProjectBuckets("p1", "a", "b"); expect(spy).toHaveBeenLastCalledWith("/projects/p1/buckets", { params: { from: "a", to: "b" } })
+  spy.mockRestore()
+})
+
+test("phase-3 fetchers hit the right endpoints", async () => {
+  const spy = vi.spyOn(api, "get").mockResolvedValue({ data: {} })
+  await fetchInventorySummary(); expect(spy).toHaveBeenLastCalledWith("/inventory/summary")
+  await fetchAccountBalance(); expect(spy).toHaveBeenLastCalledWith("/account/balance")
+  await fetchBillDetails("FR123"); expect(spy).toHaveBeenLastCalledWith("/bills/FR123/details")
+  await fetchBills("a", "b"); expect(spy).toHaveBeenLastCalledWith("/bills", { params: { from: "a", to: "b" } })
   spy.mockRestore()
 })

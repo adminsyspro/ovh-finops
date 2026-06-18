@@ -35,6 +35,21 @@ export interface ResourceTypeBreakdown { name: string; resource_type: string; va
 export interface ExpiringService { id: string; display_name: string; type: string; expiration_date: string }
 export interface AppConfig { budget: number; currency: string }
 
+// Phase-3 interfaces (Consumption / Inventory / Billing)
+export interface ConsumptionCurrent { snapshot_date: string; period_start: string | null; period_end: string | null; current_total: number; currency: string; source: string; project_count?: number; details?: unknown }
+export interface ConsumptionForecast { snapshot_date: string; period_start: string; period_end: string; forecast_total: number; current_total: number; currency: string; progress: number; source?: string; days_elapsed?: number; days_in_month?: number }
+export interface UsageHistoryRow { period_start: string; period_end: string; total: number; currency: string; service_type: string | null }
+export interface DedicatedServer { id: string; display_name: string; reverse: string | null; datacenter: string; os: string; state: string; cpu: string; ram_size: number; disk_info: { type: string; capacity: string; count: number }[]; bandwidth: number; expiration_date: string | null; renewal_type: string | null; imported_at: string }
+export interface VpsInstance { id: string; display_name: string; model: string; zone: string; state: string; os: string; vcpus: number; ram_mb: number; disk_gb: number; expiration_date: string | null; renewal_type: string | null; ip_addresses: string[]; imported_at: string }
+export interface StorageService { id: string; service_type: string; display_name: string; region: string; total_size_gb: number; used_size_gb: number; share_count: number | null; expiration_date: string | null; imported_at: string }
+export interface InventorySummary { servers: number; vps: number; storage: number; cloud_projects: number; total: number; expiring_soon: number }
+export interface Bill { id: string; date: string; price_without_tax: number; price_with_tax: number; tax: number; currency: string; pdf_url: string | null; html_url: string | null; imported_at: string; payment_type: string | null; payment_date: string | null; payment_status: string | null }
+export interface BillDetail { id: string; bill_id: string; project_id: string | null; domain: string; description: string; quantity: number; unit_price: number; total_price: number; service_type: string; resource_type: string | null }
+export interface BillPayment { bill_id: string; payment_type: string | null; payment_date: string | null; payment_status: string | null }
+export interface AccountBalance { snapshot_date?: string; debt_balance: number; credit_balance: number; deposit_total: number; net_balance?: number; currency: string }
+export interface CreditMovement { id: string; balance_name: string; amount: number; date: string; description: string; movement_type: string; imported_at: string }
+export interface AccountDebts { debt_balance: number; currency: string }
+
 // Phase-2 interfaces (Coûts data layer)
 export interface EnrichedProject { id: string; name: string; description: string | null; status: string | null; instance_count: number; consumption_total: number; period_start: string | null; period_end: string | null }
 export interface ProjectCostPoint { date: string; total: number; service_type: string }
@@ -103,52 +118,68 @@ export const fetchUser = async (): Promise<any> => {
 }
 
 // Phase 1: Consumption
-export const fetchConsumptionCurrent = async (): Promise<any> => {
+export const fetchConsumptionCurrent = async (): Promise<ConsumptionCurrent> => {
   const { data } = await api.get('/consumption/current')
   return data
 }
 
-export const fetchConsumptionForecast = async (): Promise<any> => {
+export const fetchConsumptionForecast = async (): Promise<ConsumptionForecast> => {
   const { data } = await api.get('/consumption/forecast')
   return data
 }
 
-export const fetchConsumptionHistory = async (from: string, to: string): Promise<any> => {
+export const fetchConsumptionHistory = async (from: string, to: string): Promise<UsageHistoryRow[]> => {
   const { data } = await api.get('/consumption/usage-history', { params: { from, to } })
   return data
 }
 
 // Phase 2: Account
-export const fetchAccountBalance = async (): Promise<any> => {
+export const fetchAccountBalance = async (): Promise<AccountBalance> => {
   const { data } = await api.get('/account/balance')
   return data
 }
 
-export const fetchAccountCredits = async (): Promise<any> => {
+export const fetchAccountCredits = async (): Promise<CreditMovement[]> => {
   const { data } = await api.get('/account/credits')
   return data
 }
 
-export const fetchAccountDebts = async (): Promise<any> => (await api.get('/account/debts')).data
+export const fetchAccountDebts = async (): Promise<AccountDebts> => (await api.get('/account/debts')).data
 
 // Phase 3: Inventory
-export const fetchInventoryServers = async (): Promise<any> => {
+export const fetchInventoryServers = async (): Promise<DedicatedServer[]> => {
   const { data } = await api.get('/inventory/servers')
   return data
 }
 
-export const fetchInventoryVps = async (): Promise<any> => {
+export const fetchInventoryVps = async (): Promise<VpsInstance[]> => {
   const { data } = await api.get('/inventory/vps')
   return data
 }
 
-export const fetchInventoryStorage = async (): Promise<any> => {
+export const fetchInventoryStorage = async (): Promise<StorageService[]> => {
   const { data } = await api.get('/inventory/storage')
   return data
 }
 
-export const fetchInventorySummary = async (): Promise<any> => {
+export const fetchInventorySummary = async (): Promise<InventorySummary> => {
   const { data } = await api.get('/inventory/summary')
+  return data
+}
+
+// Phase 3: Bills
+export const fetchBills = async (from?: string, to?: string): Promise<Bill[]> => {
+  const { data } = await api.get('/bills', ...(from && to ? [{ params: { from, to } }] : []))
+  return data
+}
+
+export const fetchBillDetails = async (id: string): Promise<BillDetail[]> => {
+  const { data } = await api.get(`/bills/${id}/details`)
+  return data
+}
+
+export const fetchBillPayment = async (id: string): Promise<BillPayment> => {
+  const { data } = await api.get(`/bills/${id}/payment`)
   return data
 }
 

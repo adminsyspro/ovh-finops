@@ -5,6 +5,10 @@ import {
   fetchProjectsEnriched, fetchProjectCosts, fetchProjectInstances, fetchProjectQuotas,
   fetchProjectBuckets, fetchProjectConsumption, fetchProjectInstanceTotal,
   fetchResourceTypeDetails, fetchMonthlyTrend, fetchDailyTrend,
+  fetchConsumptionCurrent, fetchConsumptionForecast, fetchConsumptionHistory,
+  fetchInventoryServers, fetchInventoryVps, fetchInventoryStorage, fetchInventorySummary,
+  fetchBills, fetchBillDetails, fetchBillPayment,
+  fetchAccountBalance, fetchAccountCredits, fetchAccountDebts,
 } from "@/services/api"
 
 export function useMonths() {
@@ -122,4 +126,69 @@ export function useDailyTrend(from: string | null | undefined, to: string | null
     queryFn: () => fetchDailyTrend(from!, to!),
     enabled: !!from && !!to,
   })
+}
+
+// Phase-3 hooks (Consumption / Inventory / Billing)
+export function useConsumptionCurrent() {
+  return useQuery({ queryKey: ["consumptionCurrent"], queryFn: fetchConsumptionCurrent })
+}
+
+export function useConsumptionForecast() {
+  return useQuery({ queryKey: ["consumptionForecast"], queryFn: fetchConsumptionForecast })
+}
+
+export function useConsumptionHistory(from: string | null | undefined, to: string | null | undefined) {
+  return useQuery({
+    queryKey: ["consumptionHistory", from, to],
+    queryFn: () => fetchConsumptionHistory(from!, to!),
+    enabled: !!from && !!to,
+  })
+}
+
+export function useInventoryServers() {
+  return useQuery({ queryKey: ["inventoryServers"], queryFn: fetchInventoryServers })
+}
+
+export function useInventoryVps() {
+  return useQuery({ queryKey: ["inventoryVps"], queryFn: fetchInventoryVps })
+}
+
+export function useInventoryStorage() {
+  return useQuery({ queryKey: ["inventoryStorage"], queryFn: fetchInventoryStorage })
+}
+
+export function useInventorySummary() {
+  return useQuery({ queryKey: ["inventorySummary"], queryFn: fetchInventorySummary })
+}
+
+export function useBills(from?: string, to?: string) {
+  return useQuery({ queryKey: ["bills", from, to], queryFn: () => fetchBills(from, to) })
+}
+
+export function useBillDetails(id: string | null | undefined) {
+  return useQuery({
+    queryKey: ["billDetails", id],
+    queryFn: () => fetchBillDetails(id!),
+    enabled: !!id,
+  })
+}
+
+export function useBillPayment(id: string | null | undefined) {
+  return useQuery({
+    queryKey: ["billPayment", id],
+    queryFn: () => fetchBillPayment(id!),
+    enabled: !!id,
+  })
+}
+
+export function useAccountBalance() {
+  return useQuery({ queryKey: ["accountBalance"], queryFn: fetchAccountBalance })
+}
+
+export function useAccountCredits() {
+  return useQuery({ queryKey: ["accountCredits"], queryFn: fetchAccountCredits })
+}
+
+export function useAccountDebts() {
+  return useQuery({ queryKey: ["accountDebts"], queryFn: fetchAccountDebts })
 }
