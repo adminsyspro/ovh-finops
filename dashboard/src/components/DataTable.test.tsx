@@ -28,7 +28,9 @@ test("rend les lignes et filtre via la recherche", () => {
 
 test("trie sur clic d'en-tête (name)", () => {
   wrap(<DataTable columns={columns} data={data} />)
-  fireEvent.click(screen.getByRole("button", { name: /Name/ }))
+  const headerButton = screen.getByRole("button", { name: /Name/ })
+  expect(headerButton).toHaveAttribute("type", "button")
+  fireEvent.click(headerButton)
   const rows = screen.getAllByRole("row")
   // first body row after header should be Alpha asc
   expect(within(rows[1]).getByText("Alpha")).toBeInTheDocument()

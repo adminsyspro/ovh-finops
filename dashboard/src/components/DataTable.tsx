@@ -55,6 +55,7 @@ export function DataTable<TData, TValue>({
                     <TableHead key={header.id}>
                       {header.isPlaceholder ? null : canSort ? (
                         <Button
+                          type="button"
                           variant="ghost" size="sm" className="-ml-3 h-8"
                           onClick={header.column.getToggleSortingHandler()}
                         >
@@ -97,11 +98,11 @@ export function DataTable<TData, TValue>({
       </div>
       {table.getPageCount() > 1 && (
         <div className="flex items-center justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>‹</Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>‹</Button>
           <span className="text-sm text-muted-foreground">
             {table.getState().pagination.pageIndex + 1} / {table.getPageCount()}
           </span>
-          <Button variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>›</Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>›</Button>
         </div>
       )}
     </div>
