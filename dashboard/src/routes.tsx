@@ -6,6 +6,7 @@ import { Trends } from "@/pages/Trends"
 import { Projects } from "@/pages/Projects"
 import { Services } from "@/pages/Services"
 import { Compare } from "@/pages/Compare"
+import { ProjectDetail } from "@/pages/ProjectDetail"
 
 export const routes: RouteObject[] = [
   {
@@ -14,7 +15,7 @@ export const routes: RouteObject[] = [
     children: [
       { index: true, element: <Overview /> },
       { path: "projects", element: <Projects /> },
-      { path: "projects/:id", element: <Placeholder title="Détail projet" /> },
+      { path: "projects/:id", element: <ProjectDetail /> },
       { path: "costs/services", element: <Services /> },
       { path: "compare", element: <Compare /> },
       { path: "trends", element: <Trends /> },
