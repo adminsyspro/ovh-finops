@@ -12,11 +12,20 @@ import { TopProjectsBar } from "@/components/charts/TopProjectsBar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
 
+function OverviewSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
+    </div>
+  )
+}
+
 export function Overview() {
   const { t, language } = useLanguage()
   const { selectedMonth } = usePeriod()
 
-  const months = useMonths().data ?? []
+  const monthsQuery = useMonths()
+  const months = monthsQuery.data ?? []
   const idx = months.findIndex((m) => m.value === selectedMonth)
   const selected = idx >= 0 ? months[idx] : null
   const previous = idx >= 0 && idx < months.length - 1 ? months[idx + 1] : null
@@ -29,20 +38,26 @@ export function Overview() {
   const expiring = useExpiring(30)
   const config = useConfig()
 
-  if (!selectedMonth || summary.isLoading) {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-28 w-full" />)}
-      </div>
-    )
-  }
-  if (summary.isError) {
+  // Months list still loading → skeletons
+  if (monthsQuery.isLoading) return <OverviewSkeleton />
+  // Months fetch failed OR the selected month's summary failed → error block
+  if (monthsQuery.isError || summary.isError) {
     return (
       <div className="rounded-lg border border-destructive/50 p-6 text-center text-destructive">
         {t("noDataAvailable")}
       </div>
     )
   }
+  // Months loaded but none available (fresh install / no bills) → empty state, NOT an endless skeleton
+  if (months.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+        {t("noDataAvailable")}
+      </div>
+    )
+  }
+  // A month is set but not yet resolved, or its summary is still loading → skeletons (prevents the zero-flash)
+  if (!selected || summary.isLoading) return <OverviewSkeleton />
 
   const s = summary.data
   const total = s?.total ?? 0
