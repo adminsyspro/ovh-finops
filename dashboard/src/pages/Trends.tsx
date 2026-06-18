@@ -1,6 +1,6 @@
 import { usePeriod } from "@/context/PeriodContext"
 import { useLanguage } from "@/context/LanguageProvider"
-import { useMonthlyTrend, useDailyTrend } from "@/hooks/queries"
+import { useMonthlyTrend, useDailyTrend, useConfig } from "@/hooks/queries"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { TrendLineChart } from "@/components/charts/TrendLineChart"
@@ -33,13 +33,23 @@ export function Trends() {
   const { t, language } = useLanguage()
   const { months, setMonths, from, to } = usePeriod()
 
-  const monthlyQuery = useMonthlyTrend(months)
-  const dailyQuery = useDailyTrend(from, to)
+  const monthly = useMonthlyTrend(months)
+  const daily = useDailyTrend(from, to)
+  const config = useConfig()
 
-  if (monthlyQuery.isLoading) return <TrendsSkeleton />
+  if (monthly.isLoading) return <TrendsSkeleton />
 
-  const monthlyData = monthlyQuery.data ?? []
-  const dailyData = dailyQuery.data ?? []
+  if (monthly.isError) {
+    return (
+      <div className="rounded-lg border border-destructive/50 p-6 text-center text-destructive">
+        {t("noDataAvailable")}
+      </div>
+    )
+  }
+
+  const monthlyData = monthly.data ?? []
+  const dailyData = daily.data ?? []
+  const currency = config.data?.currency ?? "EUR"
 
   // Map to chart-ready data using trendMonthLabel for proper labels
   const monthlyChartData = monthlyData.map((p) => ({
@@ -68,8 +78,6 @@ export function Trends() {
 
   const peakLabel = maxPoint ? trendMonthLabel(maxPoint.yearMonth, language) : "—"
   const peakCost = maxPoint?.cost ?? 0
-
-  const annualProjection = (last?.cost ?? 0) * 12
 
   const monthKeyMap: Record<number, string> = {
     3: "months3",
@@ -112,11 +120,11 @@ export function Trends() {
         <KpiCard
           label={t("mostExpensiveMonth")}
           value={peakLabel}
-          sublabel={formatMoney(peakCost, language)}
+          sublabel={formatMoney(peakCost, language, currency)}
         />
         <KpiCard
           label={t("annualProjection")}
-          value={`~${formatMoney(annualProjection, language)}`}
+          value={`~${formatMoney((last?.cost ?? 0) * 12, language, currency)}`}
           sublabel={t("basedOnLastMonth")}
         />
       </div>
@@ -128,7 +136,13 @@ export function Trends() {
 
       {/* Daily trend chart */}
       <SectionCard title={t("dailyTrend")}>
-        <TrendLineChart data={dailyChartData} />
+        {daily.isError ? (
+          <p className="py-4 text-center text-sm text-destructive">
+            {t("noDataAvailable")}
+          </p>
+        ) : (
+          <TrendLineChart data={dailyChartData} />
+        )}
       </SectionCard>
     </div>
   )

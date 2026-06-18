@@ -11,6 +11,8 @@ vi.mock("@/context/PeriodContext", () => ({
   }),
 }))
 
+import * as queries from "@/hooks/queries"
+
 vi.mock("@/hooks/queries", () => {
   const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
   return {
@@ -26,14 +28,27 @@ vi.mock("@/hooks/queries", () => {
         { date: "2026-05-02", day: "02", cost: 6 },
       ]),
     ),
+    useConfig: vi.fn(() => ok({ budget: 1000, currency: "EUR" })),
   }
 })
 
 import { Trends } from "./Trends"
 
+const { useMonthlyTrend } = queries
+
 function wrap(ui: React.ReactNode) {
   return render(<LanguageProvider defaultLanguage="en">{ui}</LanguageProvider>)
 }
+
+beforeEach(() => {
+  const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
+  vi.mocked(useMonthlyTrend).mockReturnValue(
+    ok([
+      { yearMonth: "2026-04", month: "Avr", cost: 100 },
+      { yearMonth: "2026-05", month: "Mai", cost: 150 },
+    ]) as any,
+  )
+})
 
 test("Trends page: mostExpensiveMonth label is present", () => {
   wrap(<Trends />)
@@ -61,4 +76,28 @@ test("Trends page: periodGrowth label is present", () => {
 test("Trends page: annualProjection label is present", () => {
   wrap(<Trends />)
   expect(screen.getByText("Annual projection")).toBeInTheDocument()
+})
+
+test("Trends page: monthly error → error block shown, stats not shown", () => {
+  vi.mocked(useMonthlyTrend).mockReturnValue({
+    data: undefined,
+    isLoading: false,
+    isError: true,
+  } as any)
+  wrap(<Trends />)
+  expect(
+    screen.getByText("No data available for this period"),
+  ).toBeInTheDocument()
+  expect(screen.queryByText("Most expensive month")).not.toBeInTheDocument()
+})
+
+test("Trends page: projection uses configured currency (USD → $)", () => {
+  const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
+  vi.mocked(queries.useConfig).mockReturnValue(
+    ok({ budget: 1000, currency: "USD" }) as any,
+  )
+  wrap(<Trends />)
+  // 150 * 12 = 1,800 → formatMoney with USD → contains "$"
+  const projectionNode = screen.getByText(/~/)
+  expect(projectionNode.textContent).toMatch(/\$/)
 })
