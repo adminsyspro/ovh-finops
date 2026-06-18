@@ -26,7 +26,8 @@ export function Services() {
   const { selectedMonth } = usePeriod()
   const [selectedType, setSelectedType] = useState<string | null>(null)
 
-  const months = useMonths().data ?? []
+  const monthsQuery = useMonths()
+  const months = monthsQuery.data ?? []
   const selected = months.find((m) => m.value === selectedMonth) ?? null
   const from = selected?.from
   const to = selected?.to
@@ -36,15 +37,26 @@ export function Services() {
   const resourceTypeDetails = useResourceTypeDetails(selectedType, from, to)
   const currency = useConfig().data?.currency ?? "EUR"
 
-  if (!selectedMonth || byService.isLoading) return <ServicesSkeleton />
-
-  if (byService.isError) {
+  // Months list still loading → skeletons
+  if (monthsQuery.isLoading) return <ServicesSkeleton />
+  // Months fetch failed OR byService fetch failed → error block
+  if (monthsQuery.isError || byService.isError) {
     return (
       <div className="rounded-lg border border-destructive/50 p-6 text-center text-destructive">
         {t("noDataAvailable")}
       </div>
     )
   }
+  // Months loaded but none available (fresh install / no bills) → empty state, NOT an endless skeleton
+  if (months.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
+        {t("noDataAvailable")}
+      </div>
+    )
+  }
+  // A month is set but not yet resolved, or byService is still loading → skeletons
+  if (!selected || byService.isLoading) return <ServicesSkeleton />
 
   const resourceTypeColumns: ColumnDef<ResourceTypeBreakdown>[] = [
     {

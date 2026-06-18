@@ -6,8 +6,9 @@ vi.mock("@/context/PeriodContext", () => ({
   usePeriod: () => ({ selectedMonth: "2026-05", setSelectedMonth: () => {} }),
 }))
 
+const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
+
 vi.mock("@/hooks/queries", () => {
-  const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
   return {
     useMonths: vi.fn(() =>
       ok([{ value: "2026-05", label: "Mai 2026", from: "2026-05-01", to: "2026-05-31" }]),
@@ -33,10 +34,13 @@ vi.mock("@/hooks/queries", () => {
 })
 
 import { Services } from "./Services"
+import * as queries from "@/hooks/queries"
 
 function wrap(ui: React.ReactNode) {
   return render(<LanguageProvider defaultLanguage="fr">{ui}</LanguageProvider>)
 }
+
+const { useMonths } = queries
 
 test("Services page: renders by-service donut legend 'Compute'", () => {
   wrap(<Services />)
@@ -59,4 +63,11 @@ test("Services page: renders column headers", () => {
   wrap(<Services />)
   expect(screen.getByText("Type de ressource")).toBeInTheDocument()
   expect(screen.getByText("Total ressources")).toBeInTheDocument()
+})
+
+test("Services page: renders empty state when months list is empty", () => {
+  vi.mocked(useMonths).mockReturnValueOnce({ data: [], isLoading: false, isError: false } as any)
+  wrap(<Services />)
+  expect(screen.getByText("Pas de données disponibles pour cette période")).toBeInTheDocument()
+  expect(screen.queryByText("Répartition par service")).not.toBeInTheDocument()
 })
