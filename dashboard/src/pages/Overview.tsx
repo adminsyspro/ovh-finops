@@ -77,7 +77,7 @@ export function Overview() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <SectionCard title={t("serviceBreakdown")}>
-          <DonutChart data={byService.data ?? []} />
+          <DonutChart data={byService.data ?? []} currency={currency} />
         </SectionCard>
         <SectionCard title={t("topProjects")}>
           <TopProjectsBar data={topProjects.map((p) => ({ projectName: p.projectName, total: p.total }))} />
@@ -87,6 +87,7 @@ export function Overview() {
       <SectionCard title={t("resourceTypeBreakdown")}>
         <DonutChart
           data={(byResourceType.data ?? []).map((r) => ({ name: r.name, value: r.value, color: r.color }))}
+          currency={currency}
         />
       </SectionCard>
 

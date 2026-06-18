@@ -201,7 +201,7 @@ export function ProjectDetail() {
 
       {/* ── Consumption by resource type ────────────────────────────────── */}
       <SectionCard title={t("consumption")}>
-        <DonutChart data={consumptionChartData} />
+        <DonutChart data={consumptionChartData} currency={currency} />
       </SectionCard>
 
       {/* ── Instances ───────────────────────────────────────────────────── */}

@@ -5,8 +5,10 @@ import { useLanguage } from "@/context/LanguageProvider"
 
 export function DonutChart({
   data,
+  currency = "EUR",
 }: {
   data: { name: string; value: number; color: string }[]
+  currency?: string
 }) {
   const { t, language } = useLanguage()
   if (!data || data.length === 0) {
@@ -34,7 +36,7 @@ export function DonutChart({
               <span className="truncate">{d.name}</span>
             </span>
             <span className="shrink-0 tabular-nums text-muted-foreground">
-              {formatMoney(d.value, language)}
+              {formatMoney(d.value, language, currency)}
             </span>
           </li>
         ))}

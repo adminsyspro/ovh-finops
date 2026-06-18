@@ -13,6 +13,11 @@ test("DonutChart rend une légende avec noms et montants", () => {
   expect(screen.getByText(/12\.50 €/)).toBeInTheDocument()
 })
 
+test("DonutChart respects currency prop (USD → $)", () => {
+  wrap(<DonutChart data={[{ name: "Compute", value: 12.5, color: "#123456" }]} currency="USD" />)
+  expect(screen.getByText(/12\.50 \$/)).toBeInTheDocument()
+})
+
 test("DonutChart vide → message", () => {
   wrap(<DonutChart data={[]} />)
   expect(screen.getByText("No data available for this period")).toBeInTheDocument()

@@ -102,7 +102,7 @@ export function Services() {
   return (
     <div className="space-y-6">
       <SectionCard title={t("serviceBreakdown")}>
-        <DonutChart data={byService.data ?? []} />
+        <DonutChart data={byService.data ?? []} currency={currency} />
       </SectionCard>
 
       <SectionCard title={t("resourceTypeBreakdown")}>
@@ -113,6 +113,7 @@ export function Services() {
               value: r.value,
               color: r.color,
             }))}
+            currency={currency}
           />
           <DataTable<ResourceTypeBreakdown, unknown>
             columns={resourceTypeColumns}
