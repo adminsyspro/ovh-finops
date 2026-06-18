@@ -19,3 +19,11 @@ test("applique la classe dark et persiste le choix", () => {
   expect(document.documentElement.classList.contains("dark")).toBe(true)
   expect(localStorage.getItem("ovh-finops-theme")).toBe("dark")
 })
+
+test("défaut = clair quand rien n'est stocké et pas de préférence sombre", () => {
+  localStorage.removeItem("ovh-finops-theme")
+  function Probe() { const { theme } = useTheme(); return <span data-testid="t">{theme}</span> }
+  render(<ThemeProvider defaultTheme="light"><Probe /></ThemeProvider>)
+  expect(screen.getByTestId("t").textContent).toBe("light")
+  expect(document.documentElement.classList.contains("dark")).toBe(false)
+})
