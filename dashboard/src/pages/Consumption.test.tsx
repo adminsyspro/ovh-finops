@@ -53,7 +53,7 @@ test("Consumption page: formatted current_total is present", () => {
 
 test("Consumption page: forecastEndOfMonth label is present", () => {
   wrap(<Consumption />)
-  // "Prévision fin de mois" appears as KpiCard label (may appear more than once — as label + sublabel)
+  // "Prévision fin de mois" appears as card label (may appear more than once — as label + sublabel)
   expect(screen.getAllByText("Prévision fin de mois").length).toBeGreaterThanOrEqual(1)
 })
 
@@ -93,4 +93,9 @@ test("Consumption page: forecast_total is present", () => {
   wrap(<Consumption />)
   // 2000 → fr: "2 000,00 €"
   expect(screen.getByText(/2\s?000,00/)).toBeInTheDocument()
+})
+
+test("Consumption page: both current and forecast cards show a progress bar", () => {
+  wrap(<Consumption />)
+  expect(screen.getAllByTestId("consumption-progress").length).toBe(2)
 })

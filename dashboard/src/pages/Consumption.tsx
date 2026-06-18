@@ -5,7 +5,6 @@ import {
   useConsumptionForecast,
   useConsumptionHistory,
 } from "@/hooks/queries"
-import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { TrendLineChart } from "@/components/charts/TrendLineChart"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -15,6 +14,7 @@ function ProgressBar({ pct }: { pct: number }) {
   return (
     <div className="h-2 rounded-full bg-muted">
       <div
+        data-testid="consumption-progress"
         className="h-full rounded-full bg-primary"
         style={{ width: `${Math.min(pct, 100)}%` }}
       />
@@ -66,7 +66,7 @@ export function Consumption() {
   // Compute current sublabel
   let currentSublabel: string
   if (currentData?.source === "cloud_projects") {
-    currentSublabel = `Public Cloud · ${currentData.project_count ?? ""} ${t("cloudProjects")}`
+    currentSublabel = `Public Cloud${currentData.project_count != null ? ` · ${currentData.project_count} ${t("cloudProjects")}` : ""}`
   } else if (currentData?.period_start && currentData?.period_end) {
     currentSublabel = `${currentData.period_start} → ${currentData.period_end}`
   } else {
@@ -76,7 +76,7 @@ export function Consumption() {
   // Compute forecast sublabel
   let forecastSublabel: string
   if (forecastData?.days_elapsed != null) {
-    forecastSublabel = `${forecastData.days_elapsed}/${forecastData.days_in_month} ${t("days")}`
+    forecastSublabel = `${forecastData.days_elapsed}/${forecastData.days_in_month ?? "?"} ${t("days")}`
   } else {
     forecastSublabel = t("forecastEndOfMonth")
   }
@@ -110,11 +110,14 @@ export function Consumption() {
         </div>
 
         {/* Forecast card */}
-        <KpiCard
-          label={t("forecastEndOfMonth")}
-          value={formatMoney(forecastTotal, language, forecastCurrency)}
-          sublabel={forecastSublabel}
-        />
+        <div className="rounded-xl border border-l-4 border-l-primary bg-card p-5 shadow-sm space-y-2">
+          <p className="text-sm text-muted-foreground">{t("forecastEndOfMonth")}</p>
+          <p className="text-2xl font-semibold tracking-tight">
+            {formatMoney(forecastTotal, language, forecastCurrency)}
+          </p>
+          <ProgressBar pct={Math.min(forecastData?.progress ?? 0, 100)} />
+          <p className="text-xs text-muted-foreground">{forecastSublabel}</p>
+        </div>
       </div>
 
       {/* Usage history */}
