@@ -14,15 +14,11 @@
   },
   "license": "MIT",
   "workspaces": [
-    "cli",
     "data",
     "server",
     "dashboard"
   ],
   "scripts": {
-    "cli": "node cli/index.js",
-    "split": "node cli/split-by-project.js",
-    "bills": "node cli/bills-by-project.js",
     "import": "node data/import.js",
     "import:full": "node data/import.js --full",
     "import:diff": "node data/import.js --diff",

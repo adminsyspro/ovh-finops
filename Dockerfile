@@ -10,7 +10,6 @@ WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package*.json ./
-COPY cli/package*.json ./cli/
 COPY data/package*.json ./data/
 COPY server/package*.json ./server/
 COPY dashboard/package*.json ./dashboard/

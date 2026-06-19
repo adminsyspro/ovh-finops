@@ -16,7 +16,7 @@
 - OVH inventory: dedicated servers, VPS, Public Cloud buckets, Cloud projects, and upcoming expirations.
 - Billing: invoice list, invoice details, payment status, and account balance.
 - FR/EN interface, light/dark theme, and month or full-year selection.
-- CSV exports and CLI tools for invoice analysis.
+- CSV exports for invoice and inventory analysis.
 - Local authentication, LDAP login, configurable OIDC/SAML settings, and API rate limiting.
 
 ## Architecture
@@ -26,7 +26,6 @@
 |-- dashboard/          # React + Vite frontend
 |-- server/             # Express API and dashboard static file server
 |-- data/               # OVH import, SQLite schema, data access layer
-|-- cli/                # Historical CLI tools around invoices
 |-- scripts/            # Docker entrypoint and periodic import
 |-- tests/              # Backend/data Jest tests
 |-- docker-compose.yml  # Deployment without external SSO
