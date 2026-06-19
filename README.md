@@ -1,6 +1,7 @@
-# OVH Cost Manager
-
-FinOps application for tracking OVHcloud costs, invoices, consumption, and inventory through the OVH API.
+<div align="center">
+  <h1>OVH Cost Manager</h1>
+  <p>FinOps application for tracking OVHcloud costs, invoices, consumption, and inventory through the OVH API.</p>
+</div>
 
 ![OVH FinOps dashboard preview](docs/assets/dashboard.png)
 
