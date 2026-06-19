@@ -27,7 +27,7 @@ const LOGIN_TRANSLATIONS = {
     ldapPassword: 'Mot de passe LDAP',
     submit: 'Connexion',
     title: 'Connexion - OVH FinOps',
-    subtitle: 'Maitrisez la consommation de vôtre infrastructure.',
+    subtitle: 'Maîtrisez la consommation de votre infrastructure.',
     invalidCredentials: 'Identifiants invalides',
     invalidLdapCredentials: 'Identifiants LDAP invalides',
     ldapDisabled: 'LDAP n\'est pas activé',
