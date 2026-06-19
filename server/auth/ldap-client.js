@@ -95,11 +95,29 @@ function extractGroups(attrs) {
   });
 }
 
+function normalizeGroupValue(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  const match = text.match(/(?:^|,)cn=([^,]+)/i);
+  return (match ? match[1] : text).toLowerCase();
+}
+
 function roleFromGroups(config, groups) {
-  const lowerGroups = groups.map((group) => group.toLowerCase());
-  if (config.adminGroup && lowerGroups.includes(config.adminGroup.toLowerCase())) return 'admin';
-  if (config.operatorGroup && lowerGroups.includes(config.operatorGroup.toLowerCase())) return 'operator';
+  const adminGroup = normalizeGroupValue(config.adminGroup);
+  const operatorGroup = normalizeGroupValue(config.operatorGroup);
+  const normalizedGroups = groups.map(normalizeGroupValue);
+
+  if (adminGroup && normalizedGroups.includes(adminGroup)) return 'admin';
+  if (operatorGroup && normalizedGroups.includes(operatorGroup)) return 'operator';
+  if (adminGroup || operatorGroup) return null;
   return 'viewer';
+}
+
+class LdapUnauthorizedGroupError extends Error {
+  constructor() {
+    super('LDAP user is not member of an authorized group');
+    this.code = 'LDAP_GROUP_NOT_ALLOWED';
+  }
 }
 
 async function authenticate(config, username, password) {
@@ -129,6 +147,11 @@ async function authenticate(config, username, password) {
 
     const attrs = userEntry.attributes;
     const groups = extractGroups(attrs);
+    const role = roleFromGroups(config, groups);
+    if (!role) {
+      throw new LdapUnauthorizedGroupError();
+    }
+
     const uid = readAttribute(attrs, 'uid') || readAttribute(attrs, 'sAMAccountName') || username;
     const displayName = readAttribute(attrs, 'displayName') ||
       readAttribute(attrs, 'cn') ||
@@ -140,11 +163,14 @@ async function authenticate(config, username, password) {
       username: uid,
       name: displayName,
       email: readAttribute(attrs, 'mail') || null,
-      role: roleFromGroups(config, groups),
+      role,
       groups,
       dn: userEntry.dn
     };
   } catch (err) {
+    if (err.code === 'LDAP_GROUP_NOT_ALLOWED') {
+      throw err;
+    }
     console.warn('[LDAP] Authentication failed:', err.message);
     return null;
   } finally {
@@ -153,5 +179,6 @@ async function authenticate(config, username, password) {
 }
 
 module.exports = {
-  authenticate
+  authenticate,
+  roleFromGroups
 };

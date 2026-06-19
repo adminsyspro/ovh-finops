@@ -30,6 +30,7 @@ const LOGIN_TRANSLATIONS = {
     subtitle: 'Maîtrisez la consommation de votre infrastructure.',
     invalidCredentials: 'Identifiants invalides',
     invalidLdapCredentials: 'Identifiants LDAP invalides',
+    ldapUnauthorizedGroup: 'Votre compte LDAP n\'est pas autorisé à accéder à cette application',
     ldapDisabled: 'LDAP n\'est pas activé',
     ldapLoginError: 'Erreur lors de la connexion LDAP',
     language: 'Langue',
@@ -49,6 +50,7 @@ const LOGIN_TRANSLATIONS = {
     subtitle: 'Control your infrastructure consumption.',
     invalidCredentials: 'Invalid credentials',
     invalidLdapCredentials: 'Invalid LDAP credentials',
+    ldapUnauthorizedGroup: 'Your LDAP account is not authorized to access this application',
     ldapDisabled: 'LDAP is not enabled',
     ldapLoginError: 'LDAP login failed',
     language: 'Language',
@@ -327,6 +329,9 @@ function setupLocalRoutes(authConfig, database) {
           return res.redirect(safeReturnTo(req.body?.returnTo));
         })
         .catch((err) => {
+          if (err.code === 'LDAP_GROUP_NOT_ALLOWED') {
+            return fail('ldapUnauthorizedGroup');
+          }
           console.error('[LDAP] Login error:', err);
           return fail('ldapLoginError');
         });
