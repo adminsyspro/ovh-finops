@@ -1,55 +1,55 @@
 # OVH Cost Manager
 
-Application FinOps pour suivre les couts, factures, consommations et ressources OVHcloud depuis une base SQLite locale alimentee par l'API OVH.
+FinOps application for tracking OVHcloud costs, invoices, consumption, and inventory from a local SQLite database populated through the OVH API.
 
-L'application expose une API Node/Express et un dashboard React. Elle peut tourner en local pour le developpement ou en Docker avec import automatique.
+![OVH FinOps dashboard preview](docs/assets/dashboard.png)
 
-## Fonctionnalites
+## Features
 
-- Tableau de bord des couts par mois ou par annee.
-- Analyse Cloud vs Bare Metal.
-- Detail par projet Public Cloud, service, type de ressource et ligne de facture.
-- Page projets avec instances, quotas, buckets Object Storage et Cold Archive.
-- Tendances mensuelles avec graphiques pleins.
-- Consommation courante, prevision de fin de mois et historique reconstruit depuis les factures si necessaire.
-- Inventaire OVH : serveurs dedies, VPS, buckets Public Cloud, projets Cloud et expirations proches.
-- Facturation : liste des factures, details, paiements et solde du compte.
-- Interface FR/EN, theme clair/sombre, selection de mois ou d'annee complete.
-- Exports CSV et outils CLI pour les factures.
-- Auth OIDC optionnelle et rate limiting configurable.
+- Monthly and yearly cost dashboard.
+- Cloud vs Bare Metal analysis.
+- Breakdown by Public Cloud project, service, resource type, and invoice line.
+- Project detail pages with instances, quotas, Object Storage buckets, and Cold Archive usage.
+- Monthly trends with full-area charts.
+- Current consumption, end-of-month forecast, and reconstructed history from invoices when needed.
+- OVH inventory: dedicated servers, VPS, Public Cloud buckets, Cloud projects, and upcoming expirations.
+- Billing: invoice list, invoice details, payment status, and account balance.
+- FR/EN interface, light/dark theme, and month or full-year selection.
+- CSV exports and CLI tools for invoice analysis.
+- Local authentication, LDAP login, configurable OIDC/SAML settings, and API rate limiting.
 
 ## Architecture
 
 ```text
 .
-├── dashboard/          # Frontend React + Vite
-├── server/             # API Express et service des fichiers statiques du dashboard
-├── data/               # Import OVH, schema SQLite, acces aux donnees
-├── cli/                # Outils CLI historiques autour des factures
-├── scripts/            # Entrypoint Docker et import periodique
-├── tests/              # Tests Jest backend/data
-├── docker-compose.yml  # Deploiement sans SSO
+├── dashboard/          # React + Vite frontend
+├── server/             # Express API and dashboard static file server
+├── data/               # OVH import, SQLite schema, data access layer
+├── cli/                # Historical CLI tools around invoices
+├── scripts/            # Docker entrypoint and periodic import
+├── tests/              # Backend/data Jest tests
+├── docker-compose.yml  # Deployment without external SSO
 └── docker-compose.sso.yml
 ```
 
-La base de donnees est stockee dans `DATA_DIR/ovh-bills.db`. En Docker, le volume par defaut est `ocm-data` monte dans `/app/data`.
+The database is stored in `DATA_DIR/ovh-bills.db`. In Docker, the default volume is `ocm-data`, mounted at `/app/data`.
 
-## Prerequis
+## Requirements
 
-- Node.js 20 recommande.
+- Node.js 20 recommended.
 - npm.
-- Docker et Docker Compose pour le deploiement conteneurise.
-- Identifiants API OVH avec les droits de lecture necessaires.
+- Docker and Docker Compose for containerized deployment.
+- OVH API credentials with the required read permissions.
 
-## Configuration OVH
+## OVH Configuration
 
-Copier l'exemple :
+Copy the example configuration:
 
 ```bash
 cp config.example.json config.json
 ```
 
-Renseigner les credentials OVH :
+Fill in the OVH credentials:
 
 ```json
 {
@@ -83,13 +83,13 @@ Renseigner les credentials OVH :
 }
 ```
 
-`DATA_DIR` peut aussi etre fourni par variable d'environnement. Il prend le dessus sur `dataDir`.
-Le budget du dashboard est optionnel. Ajoutez `"budget": 50000` dans `dashboard` uniquement si vous souhaitez afficher une jauge de suivi budgetaire.
-L'authentification locale est activee par defaut avec `admin/admin`. Changez ce mot de passe et `session.secret` avant toute exposition reseau.
+`DATA_DIR` can also be provided as an environment variable. It takes precedence over `dataDir`.
+The dashboard budget is optional. Add `"budget": 50000` under `dashboard` only if you want to display budget tracking.
+Local authentication is enabled by default with `admin/admin`. Change this password and `session.secret` before exposing the application on a network.
 
-### Droits API conseilles
+### Recommended API Permissions
 
-Pour un inventaire complet, le consumer key OVH doit pouvoir lire :
+For a complete inventory, the OVH consumer key should be allowed to read:
 
 ```text
 /me
@@ -108,183 +108,153 @@ Pour un inventaire complet, le consumer key OVH doit pouvoir lire :
 /ipLoadbalancing/*
 ```
 
-Les droits minimum pour les couts et factures sont `/me/*` et `/cloud/*`. Les autres chemins enrichissent l'inventaire.
+The minimum permissions for costs and invoices are `/me/*` and `/cloud/*`. The other paths enrich the inventory.
 
-## Demarrage local
+## Local Development
 
-Installer les dependances :
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-Importer les donnees :
+Import data:
 
 ```bash
 npm run import:full
 ```
 
-Lancer API et frontend Vite :
+Run the API and Vite frontend:
 
 ```bash
 npm run dev
 ```
 
-Par defaut :
+Defaults:
 
-- API : `http://localhost:3001`
-- Frontend Vite : `http://localhost:5173`
+- API: `http://localhost:3001`
+- Vite frontend: `http://localhost:5173`
 
-Pour lancer uniquement le serveur API qui sert aussi le build du dashboard :
+To run only the API server, which also serves the built dashboard:
 
 ```bash
 npm run build
 PORT=3001 npm run dev:server
 ```
 
-## Demarrage Docker
+## Docker Deployment
 
-Creer `config.json`, puis lancer :
+Create `config.json`, then run:
 
 ```bash
 docker compose up -d --build
 ```
 
-Ouvrir :
+Open:
 
 ```text
 http://localhost:3001
 ```
 
-Le conteneur lance le serveur et un import periodique via `scripts/cron-import.sh`.
+The container starts the server and runs periodic imports through `scripts/cron-import.sh`.
 
-Variables utiles :
+Useful variables:
 
-| Variable | Description | Defaut |
+| Variable | Description | Default |
 | --- | --- | --- |
-| `OCM_PORT` | Port expose sur l'hote | `3001` |
-| `PORT` | Port interne Express | `3001` |
-| `IMPORT_ENABLED` | Active l'import periodique | `true` |
-| `IMPORT_INTERVAL` | Intervalle entre imports, en secondes | `86400` |
-| `IMPORT_FLAGS` | Flags passes a `data/import.js` | `--all` |
-| `DATA_DIR` | Dossier contenant `ovh-bills.db` | `data/` ou `/app/data` |
-| `RATE_LIMIT_ENABLED` | Active le rate limiting API | `true` |
-| `TRUST_PROXY` | Active la confiance proxy | `false` |
+| `OCM_PORT` | Host-exposed port | `3001` |
+| `PORT` | Internal Express port | `3001` |
+| `IMPORT_ENABLED` | Enables periodic imports | `true` |
+| `IMPORT_INTERVAL` | Delay between imports, in seconds | `86400` |
+| `IMPORT_FLAGS` | Flags passed to `data/import.js` | `--all` |
+| `DATA_DIR` | Directory containing `ovh-bills.db` | `data/` or `/app/data` |
+| `RATE_LIMIT_ENABLED` | Enables API rate limiting | `true` |
+| `TRUST_PROXY` | Trust reverse proxy headers | `false` |
 
 ## Imports
 
-Commandes principales :
+Main commands:
 
 ```bash
-# Import complet
+# Full import
 npm run import:full
 
-# Import differentiel depuis la derniere facture connue
+# Differential import from the latest known invoice
 npm run import:diff
 
-# Import d'une periode
+# Period import
 npm run import -- --from 2026-01-01 --to 2026-12-31
 
-# Import avec donnees enrichies
+# Import enriched data
 node data/import.js --diff --include-account
 node data/import.js --diff --include-inventory
 node data/import.js --diff --include-cloud-details
 node data/import.js --diff --all
 ```
 
-En Docker :
+In Docker:
 
 ```bash
 docker exec ovh-finops node data/import.js --diff --all
 ```
 
-Les flags enrichis alimentent notamment :
+The enriched flags populate:
 
-- `--include-account` : solde, credits, dettes, informations de paiement.
-- `--include-inventory` : serveurs dedies, VPS, stockage NetApp.
-- `--include-cloud-details` : instances, quotas, buckets, consommation Public Cloud courante.
-- `--all` : active toutes les donnees enrichies.
+- `--include-account`: balance, credits, debts, and payment information.
+- `--include-inventory`: dedicated servers, VPS, and NetApp storage.
+- `--include-cloud-details`: instances, quotas, buckets, and current Public Cloud consumption.
+- `--all`: enables all enriched data.
 
-## Pages principales
+## Main Pages
 
-| Page | Role |
+| Page | Purpose |
 | --- | --- |
-| `/` | Vue executive : cout total, part Cloud, projets, services et ressources dominantes |
-| `/projects` | Liste des projets Public Cloud avec cout de la periode |
-| `/projects/:id` | Detail projet : instances, quotas, buckets, consommation |
-| `/costs/services` | Analyse par service et type de ressource |
-| `/trends` | Evolution historique sur 3 a 36 mois |
-| `/compare` | Comparaison de deux mois |
-| `/consumption` | Consommation courante, periode selectionnee et historique |
-| `/inventory` | Inventaire OVH et expirations proches |
-| `/bills` | Factures, details et solde du compte |
+| `/` | Executive overview: total cost, Cloud share, projects, services, and dominant resources |
+| `/projects` | Public Cloud project list with selected-period cost |
+| `/projects/:id` | Project detail: instances, quotas, buckets, and consumption |
+| `/costs/services` | Service and resource type analysis |
+| `/trends` | Historical evolution from 3 to 36 months |
+| `/compare` | Two-month comparison |
+| `/inventory` | OVH inventory and upcoming expirations |
+| `/bare-metal` | Bare Metal, VPS, and storage operations view |
+| `/bills` | Invoices, invoice details, payments, and account balance |
+| `/profile` | Connected user profile |
+| `/users` | Local user management |
+| `/configuration` | LDAP and OIDC/SAML authentication settings |
 
-Le selecteur en haut a droite permet de choisir un mois ou une annee complete. Les pages de couts utilisent cette periode pour les requetes `from/to`.
+The selector in the top-right corner lets you choose a month or a full year. Cost pages use this period for `from/to` API queries.
 
-## Tests et validation
+## Tests and Validation
 
-Frontend :
+Frontend:
 
 ```bash
 npm run test --workspace=dashboard
 ```
 
-Backend/data :
+Backend/data:
 
 ```bash
 npx jest tests
 ```
 
-Build :
+Build:
 
 ```bash
 npm run build
 ```
 
-## Donnees et depannage
+## Data and Troubleshooting
 
-Verifier le volume Docker :
+Inspect the Docker volume:
 
 ```bash
 docker volume inspect ocm-data
 ```
 
-Verifier la base SQLite :
+Inspect the SQLite database:
 
 ```bash
 sqlite3 /var/lib/docker/volumes/ocm-data/_data/ovh-bills.db \
   "select count(*) from bills; select count(*) from bill_details;"
 ```
-
-Si une page affiche `0` alors que les donnees existent chez OVH :
-
-1. Relancer l'import enrichi adapte.
-2. Verifier que le serveur utilise le bon `DATA_DIR`.
-3. Controler l'endpoint API correspondant.
-
-Exemples :
-
-```bash
-DATA_DIR=/var/lib/docker/volumes/ocm-data/_data node data/import.js --diff --all
-DATA_DIR=/var/lib/docker/volumes/ocm-data/_data PORT=3001 npm run dev:server
-
-curl -s "http://localhost:3001/api/inventory/summary"
-curl -s "http://localhost:3001/api/projects/enriched?from=2026-01-01&to=2026-12-31"
-```
-
-## SSO et production
-
-Le fichier `docker-compose.sso.yml` ajoute une integration LemonLDAP-NG et Traefik. Voir `docs/deployment.md` pour le detail du mode SSO.
-
-Pour une mise en production :
-
-- monter `config.json` en lecture seule ;
-- persister le volume `ocm-data` ;
-- activer `TRUST_PROXY=true` derriere un reverse proxy ;
-- ajuster `RATE_LIMIT_*` selon le contexte ;
-- remplacer le compte local `admin/admin` ou proteger l'acces avec OIDC/SSO ;
-- planifier un import periodique avec `IMPORT_FLAGS=--all`.
-
-## Licence
-
-MIT. Voir `LICENSE.txt`.

@@ -2,14 +2,13 @@ import { Bar, BarChart, XAxis, YAxis } from "recharts"
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart"
 import { useLanguage } from "@/context/LanguageProvider"
 
-const config: ChartConfig = { total: { label: "Total", color: "var(--chart-1)" } }
-
 export function TopProjectsBar({
   data,
 }: {
   data: { projectName: string; total: number }[]
 }) {
   const { t } = useLanguage()
+  const config: ChartConfig = { total: { label: t("total"), color: "var(--chart-1)" } }
   if (!data || data.length === 0) {
     return <p className="text-sm text-muted-foreground">{t("noDataAvailable")}</p>
   }

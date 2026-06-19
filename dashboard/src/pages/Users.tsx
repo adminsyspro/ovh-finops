@@ -11,6 +11,13 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 
+function roleLabel(role: string, t: (key: string) => string) {
+  if (role === "admin") return t("roleAdmin")
+  if (role === "operator") return t("roleOperator")
+  if (role === "viewer") return t("roleViewer")
+  return role
+}
+
 export function Users() {
   const { t } = useLanguage()
   const users = useLocalUsers()
@@ -28,7 +35,7 @@ export function Users() {
     {
       accessorKey: "role",
       header: t("role"),
-      cell: ({ row }) => <Badge variant="secondary" className="rounded-md">{row.original.role}</Badge>,
+      cell: ({ row }) => <Badge variant="secondary" className="rounded-md">{roleLabel(row.original.role, t)}</Badge>,
     },
     {
       id: "actions",

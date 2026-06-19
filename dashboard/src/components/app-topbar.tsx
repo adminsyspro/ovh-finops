@@ -25,6 +25,7 @@ const PAGE_DESCRIPTIONS: Record<string, string> = {
   billing: "billingDescription",
   profile: "profileDescription",
   users: "usersDescription",
+  configuration: "configurationDescription",
 }
 
 export function AppTopbar() {
@@ -60,7 +61,7 @@ export function AppTopbar() {
           <LanguageToggle />
           <ThemeToggle />
           {user.data?.authEnabled && (
-            <Button asChild variant="outline" size="icon-sm" className="bg-card" title="Déconnexion" aria-label="Déconnexion">
+            <Button asChild variant="outline" size="icon-sm" className="bg-card" title={t("logout")} aria-label={t("logout")}>
               <a href="/auth/logout">
                 <LogOut className="size-4" />
               </a>

@@ -11,6 +11,7 @@ const db = require('../data/db');
 
 // Import auth module
 const auth = require('./auth');
+const authSettings = require('./settings/auth-settings');
 
 // Load configuration
 const CONFIG_PATHS = [
@@ -174,8 +175,8 @@ async function initializeServer() {
   if (authResult.initialized) {
     // Mount auth routes with stricter rate limiting
     const authMiddleware = rateLimitConfig.enabled
-      ? [authLimiter, auth.setupRoutes(authConfig)]
-      : [auth.setupRoutes(authConfig)];
+      ? [authLimiter, auth.setupRoutes(authConfig, db.getDb())]
+      : [auth.setupRoutes(authConfig, db.getDb())];
     app.use('/auth', ...authMiddleware);
 
     if (authConfig.auth?.type === 'oidc') {
@@ -732,15 +733,52 @@ function registerRoutes() {
     return true;
   }
 
+  function requireAuthenticated(req, res) {
+    if (!authConfig.auth?.enabled) {
+      res.status(404).json({ error: 'Authentication is not enabled' });
+      return false;
+    }
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Authentication required', loginUrl: '/auth/login' });
+      return false;
+    }
+    return true;
+  }
+
   app.get('/api/auth/profile', (req, res) => {
-    if (!requireLocalAuth(req, res)) return;
+    if (!requireAuthenticated(req, res)) return;
+    const provider = req.user.provider || (req.session?.id_token ? 'oidc' : 'local');
     const user = auth.localUsers.get(req.user.id);
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json(user);
+    if (provider === 'local' && user) {
+      return res.json({
+        ...user,
+        provider: 'local',
+        editable: true
+      });
+    }
+
+    const sessionUser = req.session?.user_info;
+    if (!sessionUser) return res.status(404).json({ error: 'User not found' });
+
+    res.json({
+      username: sessionUser.preferred_username || req.user.id,
+      name: sessionUser.name || sessionUser.preferred_username || req.user.id,
+      email: sessionUser.email || null,
+      role: sessionUser.role || 'viewer',
+      provider,
+      groups: sessionUser.groups || [],
+      editable: false,
+      created_at: null,
+      updated_at: null
+    });
   });
 
   app.put('/api/auth/profile', (req, res) => {
-    if (!requireLocalAuth(req, res)) return;
+    if (!requireAuthenticated(req, res)) return;
+    const provider = req.user.provider || (req.session?.id_token ? 'oidc' : 'local');
+    if (provider !== 'local' || !auth.localUsers.get(req.user.id)) {
+      return res.status(403).json({ error: 'External authentication profiles are read-only' });
+    }
     try {
       const updated = auth.localUsers.update(req.user.id, {
         name: req.body?.name,
@@ -801,6 +839,42 @@ function registerRoutes() {
       if (!deleted) return res.status(404).json({ error: 'User not found' });
       auth.sessionStore.deleteByUserId(req.params.username);
       res.status(204).end();
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/settings/ldap', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      res.json(authSettings.getLdap(db.getDb()));
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.put('/api/settings/ldap', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      res.json(authSettings.updateLdap(db.getDb(), req.body));
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  app.get('/api/settings/sso', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      res.json(authSettings.getSso(db.getDb()));
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.put('/api/settings/sso', (req, res) => {
+    if (!requireLocalAuth(req, res)) return;
+    try {
+      res.json(authSettings.updateSso(db.getDb(), req.body));
     } catch (err) {
       res.status(400).json({ error: err.message });
     }

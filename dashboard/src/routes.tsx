@@ -11,6 +11,7 @@ import { BareMetal } from "@/pages/BareMetal"
 import { Billing } from "@/pages/Billing"
 import { Profile } from "@/pages/Profile"
 import { Users } from "@/pages/Users"
+import { Configuration } from "@/pages/Configuration"
 
 export const routes: RouteObject[] = [
   {
@@ -28,6 +29,7 @@ export const routes: RouteObject[] = [
       { path: "bills", element: <Billing /> },
       { path: "profile", element: <Profile /> },
       { path: "users", element: <Users /> },
+      { path: "configuration", element: <Configuration /> },
     ],
   },
 ]

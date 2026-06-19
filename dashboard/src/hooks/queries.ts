@@ -10,6 +10,7 @@ import {
   fetchBills, fetchBillDetails, fetchBillPayment,
   fetchAccountBalance, fetchAccountCredits, fetchAccountDebts, fetchUser,
   fetchAuthProfile, updateAuthProfile, fetchLocalUsers, createLocalUser, updateLocalUser, deleteLocalUser,
+  fetchLdapSettings, updateLdapSettings, fetchSsoSettings, updateSsoSettings,
 } from "@/services/api"
 
 export function useMonths() {
@@ -65,6 +66,30 @@ export function useDeleteLocalUser() {
   return useMutation({
     mutationFn: deleteLocalUser,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["localUsers"] }),
+  })
+}
+
+export function useLdapSettings() {
+  return useQuery({ queryKey: ["ldapSettings"], queryFn: fetchLdapSettings })
+}
+
+export function useUpdateLdapSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updateLdapSettings,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ldapSettings"] }),
+  })
+}
+
+export function useSsoSettings() {
+  return useQuery({ queryKey: ["ssoSettings"], queryFn: fetchSsoSettings })
+}
+
+export function useUpdateSsoSettings() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: updateSsoSettings,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["ssoSettings"] }),
   })
 }
 

@@ -49,8 +49,45 @@ export interface BillPayment { bill_id: string; payment_type: string | null; pay
 export interface AccountBalance { snapshot_date?: string; debt_balance: number; credit_balance: number; deposit_total: number; net_balance?: number; currency: string }
 export interface CreditMovement { id: string; balance_name: string; amount: number; date: string; description: string; movement_type: string; imported_at: string }
 export interface AccountDebts { debt_balance: number; currency: string }
-export interface LocalUser { username: string; name: string; email: string | null; role: string; created_at: string; updated_at: string }
+export interface LocalUser { username: string; name: string; email: string | null; role: string; created_at?: string | null; updated_at?: string | null; provider?: string; editable?: boolean; groups?: string[] }
 export interface LocalUserPayload { username?: string; password?: string; name?: string; email?: string; role?: string }
+export interface LdapSettings {
+  enabled: boolean
+  url: string
+  baseDN: string
+  bindDN: string
+  bindPassword: string
+  hasBindPassword: boolean
+  userFilter: string
+  adminGroup: string
+  operatorGroup: string
+  tlsRejectUnauthorized: boolean
+}
+export interface SsoSettings {
+  enabled: boolean
+  protocol: "oidc" | "saml"
+  providerName: string
+  appBaseUrl: string
+  showLocalLogin: boolean
+  forceSsoRedirect: boolean
+  autoProvision: boolean
+  defaultRole: string
+  oidcIssuerUrl: string
+  oidcClientId: string
+  oidcClientSecret: string
+  hasOidcClientSecret: boolean
+  oidcScopes: string
+  oidcClaimEmail: string
+  oidcClaimName: string
+  oidcClaimGroups: string
+  oidcAdminGroup: string
+  samlEntryPoint: string
+  samlIssuer: string
+  samlCertificate: string
+  samlCallbackUrl: string
+  samlLogoutUrl: string
+  samlNameIdFormat: string
+}
 
 // Phase-2 interfaces (Coûts data layer)
 export interface EnrichedProject { id: string; name: string; description: string | null; status: string | null; instance_count: number; consumption_total: number; period_start: string | null; period_end: string | null }
@@ -149,6 +186,26 @@ export const updateLocalUser = async (username: string, payload: LocalUserPayloa
 
 export const deleteLocalUser = async (username: string): Promise<void> => {
   await api.delete(`/auth/users/${encodeURIComponent(username)}`)
+}
+
+export const fetchLdapSettings = async (): Promise<LdapSettings> => {
+  const { data } = await api.get('/settings/ldap')
+  return data
+}
+
+export const updateLdapSettings = async (payload: Partial<LdapSettings>): Promise<LdapSettings> => {
+  const { data } = await api.put('/settings/ldap', payload)
+  return data
+}
+
+export const fetchSsoSettings = async (): Promise<SsoSettings> => {
+  const { data } = await api.get('/settings/sso')
+  return data
+}
+
+export const updateSsoSettings = async (payload: Partial<SsoSettings>): Promise<SsoSettings> => {
+  const { data } = await api.put('/settings/sso', payload)
+  return data
 }
 
 // Phase 1: Consumption

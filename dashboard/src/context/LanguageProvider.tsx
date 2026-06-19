@@ -12,7 +12,10 @@ export function LanguageProvider({
     const saved = localStorage.getItem(STORAGE_KEY)
     return saved === "fr" || saved === "en" ? saved : defaultLanguage
   })
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, language) }, [language])
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, language)
+    document.cookie = `${STORAGE_KEY}=${language}; Path=/; Max-Age=31536000; SameSite=Lax`
+  }, [language])
   const t = (key: string) => translations[language]?.[key] || translations.fr?.[key] || key
   return (
     <LanguageContext.Provider value={{ language, setLanguage: setLanguageState, t }}>

@@ -43,7 +43,7 @@ test("breadcrumb résout une route imbriquée via startsWith (projects/:id)", ()
   )
   // Assert specifically on the breadcrumb. With the current exact-match bug it shows the
   // "ovh-finops" fallback; matchNav's prefix-match must resolve it to "Projets".
-  const crumb = within(screen.getByRole("navigation", { name: "breadcrumb" }))
+  const crumb = within(screen.getByRole("navigation", { name: "Fil d'Ariane" }))
   expect(crumb.getByText("Projets")).toBeInTheDocument()
   expect(crumb.queryByText("ovh-finops")).not.toBeInTheDocument()
 })

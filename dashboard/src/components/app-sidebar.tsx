@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom"
 import {
   LayoutDashboard, FolderTree, PieChart, GitCompare, TrendingUp,
-  HardDrive, Server, Receipt, User, Users,
+  HardDrive, Server, Receipt, User, Users, Settings,
 } from "lucide-react"
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -21,6 +21,7 @@ export const NAV_ITEMS = [
   { titleKey: "billing", path: "/bills", icon: Receipt, group: "ops" },
   { titleKey: "profile", path: "/profile", icon: User, group: "account" },
   { titleKey: "users", path: "/users", icon: Users, group: "account" },
+  { titleKey: "configuration", path: "/configuration", icon: Settings, group: "account" },
 ] as const
 
 const GROUPS: { id: string; labelKey: string }[] = [

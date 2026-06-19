@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { useLanguage } from "@/context/LanguageProvider"
 import { useAuthProfile, useUpdateAuthProfile } from "@/hooks/queries"
 import { SectionCard } from "@/components/SectionCard"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -39,6 +40,7 @@ export function Profile() {
 
   const onSubmit = (event: React.FormEvent) => {
     event.preventDefault()
+    if (profile.data?.editable === false) return
     updateProfile.mutate(
       {
         name,
@@ -49,9 +51,15 @@ export function Profile() {
     )
   }
 
+  const editable = profile.data.editable !== false
+  const provider = profile.data.provider ?? "local"
+
   return (
-    <div className="max-w-3xl space-y-6">
-      <SectionCard title={t("profile")}>
+    <div className="space-y-6">
+      <SectionCard
+        title={t("profile")}
+        actions={<Badge variant="secondary" className="rounded-md uppercase">{provider}</Badge>}
+      >
         <form className="grid gap-4" onSubmit={onSubmit}>
           <div className="grid gap-2">
             <label className="text-sm font-medium" htmlFor="username">{t("username")}</label>
@@ -59,21 +67,29 @@ export function Profile() {
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-medium" htmlFor="name">{t("name")}</label>
-            <Input id="name" value={name} onChange={(event) => setName(event.target.value)} />
+            <Input id="name" value={name} onChange={(event) => setName(event.target.value)} disabled={!editable} />
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-medium" htmlFor="email">{t("email")}</label>
-            <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+            <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={!editable} />
           </div>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium" htmlFor="password">{t("newPassword")}</label>
-            <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
-          </div>
-          <div className="flex items-center justify-end gap-3">
-            {updateProfile.isError && <p className="text-sm text-destructive">{t("saveError")}</p>}
-            {updateProfile.isSuccess && <p className="text-sm text-green-600">{t("saved")}</p>}
-            <Button type="submit" disabled={updateProfile.isPending}>{t("save")}</Button>
-          </div>
+          {editable ? (
+            <>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium" htmlFor="password">{t("newPassword")}</label>
+                <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                {updateProfile.isError && <p className="text-sm text-destructive">{t("saveError")}</p>}
+                {updateProfile.isSuccess && <p className="text-sm text-green-600">{t("saved")}</p>}
+                <Button type="submit" disabled={updateProfile.isPending}>{t("save")}</Button>
+              </div>
+            </>
+          ) : (
+            <p className="rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              {t("externalProfileReadonly")}
+            </p>
+          )}
         </form>
       </SectionCard>
     </div>

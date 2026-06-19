@@ -22,7 +22,9 @@ function createAuthMiddleware(config) {
         req.user = {
           id: session.user_id,
           email: session.user_info.email || null,
-          name: session.user_info.name || session.user_info.preferred_username || session.user_id
+          name: session.user_info.name || session.user_info.preferred_username || session.user_id,
+          provider: session.user_info.auth_provider || (session.id_token ? 'oidc' : 'local'),
+          role: session.user_info.role || null
         };
         req.session = session;
         return next();
@@ -34,6 +36,7 @@ function createAuthMiddleware(config) {
     // Public paths - no auth required
     if (req.path === '/api/health' ||
         req.path.startsWith('/auth/') ||
+        req.path === '/login-bg.jpg' ||
         req.path === '/logout/backchannel') {
       return next();
     }
