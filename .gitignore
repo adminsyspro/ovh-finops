@@ -43,6 +43,9 @@ npm-debug.log*
 # Local agent planning/spec docs — keep untracked, never publish
 docs/superpowers/
 
+# Markdown documentation is kept out of the remote repository
+*.md
+
 # Auto Claude data directory
 .auto-claude/
 
