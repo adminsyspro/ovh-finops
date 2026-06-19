@@ -63,8 +63,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.IMAGE_NAME }}
-          short-description: "OVH FinOps - Interactive dashboard for OVHcloud billing analysis"
-          readme-filepath: ./README.md
+          short-description: "FinOps application for tracking OVHcloud costs, invoices, consumption, and inventory through the OVH API."
 
   create-release:
     needs: build-and-push

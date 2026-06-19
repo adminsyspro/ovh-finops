@@ -1,6 +1,6 @@
 {
   "name": "ovh-finops",
-  "description": "OVH FinOps - Interactive dashboard for OVHcloud billing analysis",
+  "description": "FinOps application for tracking OVHcloud costs, invoices, consumption, and inventory through the OVH API.",
   "version": "2.2.0",
   "private": true,
   "homepage": "https://github.com/adminsyspro/ovh-finops",
