@@ -79,7 +79,6 @@ services:
     volumes:
       - lemonldap-conf:/var/lib/lemonldap-ng/conf
       - lemonldap-sessions:/var/lib/lemonldap-ng/sessions
-      - ./demo/sso:/over
     ports:
       - "80:80"
     networks:
