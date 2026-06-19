@@ -15,6 +15,7 @@ data/*.db
 .env.local
 credentials.json
 config.json
+demo/sso/oidcServicePrivateKeySig
 
 # OS files
 .DS_Store
