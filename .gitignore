@@ -45,6 +45,7 @@ docs/superpowers/
 
 # Markdown documentation is kept out of the remote repository
 *.md
+!README.md
 
 # Auto Claude data directory
 .auto-claude/

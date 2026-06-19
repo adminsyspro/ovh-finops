@@ -64,6 +64,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ env.IMAGE_NAME }}
           short-description: "FinOps application for tracking OVHcloud costs, invoices, consumption, and inventory through the OVH API."
+          readme-filepath: ./README.md
 
   create-release:
     needs: build-and-push
