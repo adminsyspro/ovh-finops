@@ -4,14 +4,13 @@ import {
   fetchByResourceType, fetchExpiringServices,
   fetchProjectsEnriched, fetchProjectCosts, fetchProjectInstances, fetchProjectQuotas,
   fetchProjectBuckets, fetchProjectConsumption, fetchProjectInstanceTotal,
-  fetchResourceTypeDetails, fetchResourceTypePeriodDetails, fetchMonthlyTrend, fetchDailyTrend,
+  fetchResourceTypeDetails, fetchMonthlyTrend, fetchDailyTrend,
   fetchConsumptionCurrent, fetchConsumptionForecast, fetchConsumptionHistory,
   fetchInventoryServers, fetchInventoryVps, fetchInventoryStorage, fetchInventorySummary,
   fetchBills, fetchBillDetails, fetchBillPayment,
   fetchAccountBalance, fetchAccountCredits, fetchAccountDebts, fetchUser,
   fetchAuthProfile, updateAuthProfile, fetchLocalUsers, createLocalUser, updateLocalUser, deleteLocalUser,
   fetchLdapSettings, updateLdapSettings, fetchSsoSettings, updateSsoSettings,
-  fetchServiceDetails,
 } from "@/services/api"
 
 export function useMonths() {
@@ -110,14 +109,6 @@ export function useByService(from: string | null | undefined, to: string | null 
   })
 }
 
-export function useServiceDetails(service: string | null | undefined, from: string | null | undefined, to: string | null | undefined) {
-  return useQuery({
-    queryKey: ["serviceDetails", service, from, to],
-    queryFn: () => fetchServiceDetails(service!, from!, to!),
-    enabled: !!service && !!from && !!to,
-  })
-}
-
 export function useByProject(from: string | null | undefined, to: string | null | undefined) {
   return useQuery({
     queryKey: ["byProject", from, to],
@@ -198,14 +189,6 @@ export function useResourceTypeDetails(type: string | null | undefined, from: st
   return useQuery({
     queryKey: ["resourceTypeDetails", type, from, to],
     queryFn: () => fetchResourceTypeDetails(type!, from!, to!),
-    enabled: !!type && !!from && !!to,
-  })
-}
-
-export function useResourceTypePeriodDetails(type: string | null | undefined, from: string | null | undefined, to: string | null | undefined) {
-  return useQuery({
-    queryKey: ["resourceTypePeriodDetails", type, from, to],
-    queryFn: () => fetchResourceTypePeriodDetails(type!, from!, to!),
     enabled: !!type && !!from && !!to,
   })
 }

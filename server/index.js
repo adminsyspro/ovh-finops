@@ -561,26 +561,6 @@ function registerRoutes() {
     }
   });
 
-  app.get('/api/analysis/service-details', (req, res) => {
-    try {
-      const { service, from, to } = req.query;
-      if (!service) return res.status(400).json({ error: 'service parameter is required' });
-      const validation = validateDateRange(from, to);
-      if (!validation.valid) return res.status(400).json({ error: validation.error });
-      const data = db.analysis.serviceDetails(service, from, to);
-      res.json(data.map(row => ({
-        period: row.period,
-        invoiceId: row.invoice_id,
-        domain: row.domain,
-        description: row.description,
-        total: row.total,
-        lineCount: row.line_count
-      })));
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
   app.get('/api/analysis/daily-trend', (req, res) => {
     try {
       const { from, to } = req.query;
@@ -1383,26 +1363,6 @@ function registerRoutes() {
       if (!validation.valid) return res.status(400).json({ error: validation.error });
       const data = db.inventory.byResourceTypeDetails(type, from, to);
       res.json(data);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  });
-
-  app.get('/api/analysis/resource-type-period-details', (req, res) => {
-    try {
-      const { type, from, to } = req.query;
-      if (!type) return res.status(400).json({ error: 'type parameter is required' });
-      const validation = validateDateRange(from, to);
-      if (!validation.valid) return res.status(400).json({ error: validation.error });
-      const data = db.inventory.byResourceTypePeriodDetails(type, from, to);
-      res.json(data.map(row => ({
-        period: row.period,
-        invoiceId: row.invoice_id,
-        domain: row.domain,
-        description: row.description,
-        total: row.total,
-        lineCount: row.line_count
-      })));
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

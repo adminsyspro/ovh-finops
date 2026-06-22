@@ -1,16 +1,13 @@
-import { useState } from "react"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
   useConfig, useSummary, useByService, useByResourceType, useExpiring,
-  useServiceDetails, useResourceTypePeriodDetails,
 } from "@/hooks/queries"
 import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { BudgetGauge } from "@/components/BudgetGauge"
 import { ExpiringAlerts } from "@/components/ExpiringAlerts"
-import { BreakdownDetailSheet } from "@/components/BreakdownDetailSheet"
-import { DonutChart, type DonutDatum } from "@/components/charts/DonutChart"
+import { DonutChart } from "@/components/charts/DonutChart"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
 import { CloudIcon } from "@phosphor-icons/react/dist/csr/Cloud"
@@ -31,15 +28,12 @@ function OverviewSkeleton() {
 
 export function Overview() {
   const { t, language } = useLanguage()
-  const [detail, setDetail] = useState<{ kind: "service" | "resource"; key: string; name: string; total: number } | null>(null)
   const { monthsQuery, months, selected, previous, from, to } = useSelectedMonth()
 
   const summary = useSummary(from, to)
   const prevSummary = useSummary(previous?.from, previous?.to)
   const byService = useByService(from, to)
   const byResourceType = useByResourceType(from, to)
-  const serviceDetails = useServiceDetails(detail?.kind === "service" ? detail.key : null, from, to)
-  const resourceTypePeriodDetails = useResourceTypePeriodDetails(detail?.kind === "resource" ? detail.key : null, from, to)
   const expiring = useExpiring(30)
   const config = useConfig()
 
@@ -71,27 +65,6 @@ export function Overview() {
   const currency = config.data?.currency ?? "EUR"
   const serviceRows = byService.data ?? []
   const resourceRows = byResourceType.data ?? []
-  const resourceChartData = resourceRows.map((r) => ({
-    id: r.resource_type,
-    name: r.name,
-    value: r.value,
-    color: r.color,
-  }))
-  const detailRows = detail?.kind === "service"
-    ? serviceDetails.data ?? []
-    : resourceTypePeriodDetails.data ?? []
-  const detailLoading = detail?.kind === "service"
-    ? serviceDetails.isLoading
-    : resourceTypePeriodDetails.isLoading
-  const detailError = detail?.kind === "service"
-    ? serviceDetails.isError
-    : resourceTypePeriodDetails.isError
-  const openServiceDetail = (datum: DonutDatum) => {
-    setDetail({ kind: "service", key: datum.name, name: datum.name, total: datum.value })
-  }
-  const openResourceDetail = (datum: DonutDatum) => {
-    setDetail({ kind: "resource", key: datum.id ?? datum.name, name: datum.name, total: datum.value })
-  }
   const cloudShare = total > 0 ? ((s?.cloudTotal ?? 0) / total) * 100 : 0
   const topService = serviceRows.reduce<(typeof serviceRows)[number] | null>(
     (acc, row) => (acc === null || row.value > acc.value ? row : acc),
@@ -148,14 +121,13 @@ export function Overview() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <SectionCard title={t("serviceBreakdown")}>
-          <DonutChart data={byService.data ?? []} currency={currency} onDatumClick={openServiceDetail} />
+          <DonutChart data={byService.data ?? []} currency={currency} />
         </SectionCard>
         <SectionCard title={t("resourceTypeBreakdown")}>
           <div className="min-h-[260px]">
             <DonutChart
-              data={resourceChartData}
+              data={resourceRows.map((r) => ({ name: r.name, value: r.value, color: r.color }))}
               currency={currency}
-              onDatumClick={openResourceDetail}
             />
           </div>
         </SectionCard>
@@ -165,18 +137,6 @@ export function Overview() {
         <BudgetGauge used={total} budget={config.data?.budget} currency={currency} />
         <ExpiringAlerts services={expiring.data ?? []} />
       </div>
-      <BreakdownDetailSheet
-        open={detail !== null}
-        onOpenChange={(open) => {
-          if (!open) setDetail(null)
-        }}
-        title={detail ? `${t("breakdownDetails")} · ${detail.name}` : t("breakdownDetails")}
-        subtitle={detail ? formatMoney(detail.total, language, currency) : undefined}
-        rows={detailRows}
-        isLoading={detailLoading}
-        isError={detailError}
-        currency={currency}
-      />
     </div>
   )
 }
