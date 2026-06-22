@@ -95,6 +95,7 @@ export function Services() {
   const topServices = [...serviceRows].sort((a, b) => b.value - a.value).slice(0, 6)
   const detailRows = detail?.kind === "service" ? serviceDetails.data ?? [] : resourceTypeDetails.data ?? []
   const detailLoading = detail?.kind === "service" ? serviceDetails.isLoading : resourceTypeDetails.isLoading
+  const detailError = detail?.kind === "service" ? serviceDetails.isError : resourceTypeDetails.isError
   const openServiceDetail = (datum: DonutDatum) => {
     setDetail({ kind: "service", key: datum.name, name: datum.name, total: datum.value })
   }
@@ -219,6 +220,7 @@ export function Services() {
         subtitle={detail ? formatMoney(detail.total, language, currency) : undefined}
         rows={detailRows}
         isLoading={detailLoading}
+        isError={detailError}
         currency={currency}
       />
     </div>

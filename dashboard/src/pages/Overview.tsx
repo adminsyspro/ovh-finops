@@ -83,6 +83,9 @@ export function Overview() {
   const detailLoading = detail?.kind === "service"
     ? serviceDetails.isLoading
     : resourceTypePeriodDetails.isLoading
+  const detailError = detail?.kind === "service"
+    ? serviceDetails.isError
+    : resourceTypePeriodDetails.isError
   const openServiceDetail = (datum: DonutDatum) => {
     setDetail({ kind: "service", key: datum.name, name: datum.name, total: datum.value })
   }
@@ -171,6 +174,7 @@ export function Overview() {
         subtitle={detail ? formatMoney(detail.total, language, currency) : undefined}
         rows={detailRows}
         isLoading={detailLoading}
+        isError={detailError}
         currency={currency}
       />
     </div>

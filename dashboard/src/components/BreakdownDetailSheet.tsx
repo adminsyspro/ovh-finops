@@ -15,6 +15,7 @@ export function BreakdownDetailSheet({
   subtitle,
   rows,
   isLoading,
+  isError,
   currency,
 }: {
   open: boolean
@@ -23,6 +24,7 @@ export function BreakdownDetailSheet({
   subtitle?: string
   rows: BreakdownDetailRow[]
   isLoading?: boolean
+  isError?: boolean
   currency: string
 }) {
   const { t, language } = useLanguage()
@@ -72,6 +74,10 @@ export function BreakdownDetailSheet({
             <div className="space-y-3">
               <Skeleton className="h-9 w-64 max-w-full" />
               <Skeleton className="h-64 w-full" />
+            </div>
+          ) : isError ? (
+            <div className="rounded-lg border border-destructive/50 p-6 text-center text-sm text-destructive">
+              {t("breakdownDetailsError")}
             </div>
           ) : (
             <DataTable<BreakdownDetailRow, unknown>

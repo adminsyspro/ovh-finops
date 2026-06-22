@@ -425,7 +425,7 @@ const analysisOps = {
       WHERE COALESCE(d.service_type, 'Other') = ?
         AND b.date >= ? AND b.date <= ?
       GROUP BY b.date, b.id, d.domain, d.description
-      HAVING total > 0
+      HAVING total != 0
       ORDER BY b.date DESC, total DESC
     `).all(serviceType, fromDate, toDate);
   },
@@ -782,7 +782,7 @@ const inventoryOps = {
       WHERE COALESCE(d.resource_type, 'other') = ?
         AND b.date >= ? AND b.date <= ?
       GROUP BY d.domain
-      HAVING total > 0
+      HAVING total != 0
       ORDER BY total DESC
     `).all(resourceType, fromDate, toDate, resourceType, fromDate, toDate);
   },

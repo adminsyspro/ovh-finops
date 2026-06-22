@@ -6,6 +6,21 @@ import { cn } from "@/lib/utils"
 
 export type DonutDatum = { id?: string; name: string; value: number; color: string }
 
+function getClickedDatum(entry: unknown): DonutDatum | null {
+  if (!entry || typeof entry !== "object") return null
+  const maybeEntry = entry as Partial<DonutDatum> & { payload?: Partial<DonutDatum> }
+  const datum = maybeEntry.payload ?? maybeEntry
+  if (typeof datum.name !== "string" || typeof datum.value !== "number" || typeof datum.color !== "string") {
+    return null
+  }
+  return {
+    id: typeof datum.id === "string" ? datum.id : undefined,
+    name: datum.name,
+    value: datum.value,
+    color: datum.color,
+  }
+}
+
 export function DonutChart({
   data,
   currency = "EUR",
@@ -33,10 +48,17 @@ export function DonutChart({
             innerRadius={50}
             outerRadius={80}
             className={cn(onDatumClick && "cursor-pointer")}
-            onClick={onDatumClick ? (entry: unknown) => onDatumClick(entry as DonutDatum) : undefined}
+            onClick={onDatumClick ? (entry: unknown) => {
+              const datum = getClickedDatum(entry)
+              if (datum) onDatumClick(datum)
+            } : undefined}
           >
             {data.map((d) => (
-              <Cell key={d.name} fill={d.color} />
+              <Cell
+                key={d.id ?? d.name}
+                fill={d.color}
+                onClick={onDatumClick ? () => onDatumClick(d) : undefined}
+              />
             ))}
           </Pie>
         </PieChart>
