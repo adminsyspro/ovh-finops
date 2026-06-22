@@ -1,4 +1,4 @@
-import { type RouteObject } from "react-router-dom"
+import { Navigate, type RouteObject } from "react-router-dom"
 import { AppLayout } from "@/layouts/AppLayout"
 import { Overview } from "@/pages/Overview"
 import { Trends } from "@/pages/Trends"
@@ -22,6 +22,7 @@ export const routes: RouteObject[] = [
       { path: "projects", element: <Projects /> },
       { path: "projects/:id", element: <ProjectDetail /> },
       { path: "costs/services", element: <Services /> },
+      { path: "costs/compare", element: <Compare /> },
       { path: "compare", element: <Compare /> },
       { path: "trends", element: <Trends /> },
       { path: "inventory", element: <Inventory /> },
@@ -30,6 +31,7 @@ export const routes: RouteObject[] = [
       { path: "profile", element: <Profile /> },
       { path: "users", element: <Users /> },
       { path: "configuration", element: <Configuration /> },
+      { path: "*", element: <Navigate to="/" replace /> },
     ],
   },
 ]

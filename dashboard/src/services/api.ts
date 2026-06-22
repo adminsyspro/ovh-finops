@@ -30,6 +30,7 @@ export interface Summary {
   topProjects: SummaryProject[]
 }
 export interface ServiceBreakdown { name: string; value: number; color: string; detailsCount: number }
+export interface ServiceDetail { billDate: string; billId: string; domain: string; description: string | null; total: number; lineCount: number }
 export interface ProjectBreakdown { projectId: string; projectName: string; total: number; detailsCount: number }
 export interface ResourceTypeBreakdown { name: string; resource_type: string; value: number; color: string; detailsCount: number; serviceCount: number }
 export interface ExpiringService { id: string; display_name: string; type: string; expiration_date: string }
@@ -131,6 +132,11 @@ export const fetchByProject = async (from: string, to: string): Promise<ProjectB
 
 export const fetchByService = async (from: string, to: string): Promise<ServiceBreakdown[]> => {
   const { data } = await api.get('/analysis/by-service', { params: { from, to } })
+  return data
+}
+
+export const fetchServiceDetails = async (service: string, from: string, to: string): Promise<ServiceDetail[]> => {
+  const { data } = await api.get('/analysis/service-details', { params: { service, from, to } })
   return data
 }
 

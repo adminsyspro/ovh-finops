@@ -561,6 +561,27 @@ function registerRoutes() {
     }
   });
 
+  app.get('/api/analysis/service-details', (req, res) => {
+    try {
+      const { service, from, to } = req.query;
+      if (!service) return res.status(400).json({ error: 'service parameter is required' });
+      const validation = validateDateRange(from, to);
+      if (!validation.valid) return res.status(400).json({ error: validation.error });
+
+      const data = db.analysis.serviceDetails(service, from, to);
+      res.json(data.map(row => ({
+        billDate: row.bill_date,
+        billId: row.bill_id,
+        domain: row.domain,
+        description: row.description,
+        total: row.total,
+        lineCount: row.line_count
+      })));
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.get('/api/analysis/daily-trend', (req, res) => {
     try {
       const { from, to } = req.query;

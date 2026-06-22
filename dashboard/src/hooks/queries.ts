@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   fetchMonths, fetchConfig, fetchSummary, fetchByService, fetchByProject,
+  fetchServiceDetails,
   fetchByResourceType, fetchExpiringServices,
   fetchProjectsEnriched, fetchProjectCosts, fetchProjectInstances, fetchProjectQuotas,
   fetchProjectBuckets, fetchProjectConsumption, fetchProjectInstanceTotal,
@@ -106,6 +107,14 @@ export function useByService(from: string | null | undefined, to: string | null 
     queryKey: ["byService", from, to],
     queryFn: () => fetchByService(from!, to!),
     enabled: !!from && !!to,
+  })
+}
+
+export function useServiceDetails(service: string | null | undefined, from: string | null | undefined, to: string | null | undefined) {
+  return useQuery({
+    queryKey: ["serviceDetails", service, from, to],
+    queryFn: () => fetchServiceDetails(service!, from!, to!),
+    enabled: !!service && !!from && !!to,
   })
 }
 

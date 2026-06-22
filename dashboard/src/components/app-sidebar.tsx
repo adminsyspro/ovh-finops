@@ -33,6 +33,9 @@ const GROUPS: { id: string; labelKey: string }[] = [
 
 /** Active-route match: exact for "/", prefix for the rest (so /projects/:id matches "Projets"). */
 export function matchNav(pathname: string) {
+  if (pathname === "/costs/compare" || pathname.startsWith("/costs/compare/")) {
+    return NAV_ITEMS.find((i) => i.path === "/compare")
+  }
   return NAV_ITEMS.find((i) =>
     i.path === "/" ? pathname === "/" : pathname === i.path || pathname.startsWith(i.path + "/"),
   )

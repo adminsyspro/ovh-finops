@@ -2,14 +2,15 @@ import { useState } from "react"
 import { type ColumnDef } from "@tanstack/react-table"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
-  useConfig, useByService, useByResourceType, useResourceTypeDetails,
+  useConfig, useByService, useByResourceType, useResourceTypeDetails, useServiceDetails,
 } from "@/hooks/queries"
 import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { type ResourceTypeBreakdown, type ResourceTypeDetail } from "@/services/api"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
-import { DonutChart } from "@/components/charts/DonutChart"
+import { DonutChart, type DonutDatum } from "@/components/charts/DonutChart"
 import { DataTable } from "@/components/DataTable"
+import { ServiceDetailSheet } from "@/components/ServiceDetailSheet"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
@@ -35,11 +36,13 @@ function ServicesSkeleton() {
 export function Services() {
   const { t, language } = useLanguage()
   const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [selectedService, setSelectedService] = useState<DonutDatum | null>(null)
   const { monthsQuery, months, selected, from, to } = useSelectedMonth()
 
   const byService = useByService(from, to)
   const byResourceType = useByResourceType(from, to)
   const resourceTypeDetails = useResourceTypeDetails(selectedType, from, to)
+  const serviceDetails = useServiceDetails(selectedService?.name, from, to)
   const currency = useConfig().data?.currency ?? "EUR"
 
   // Months list still loading → skeletons
@@ -168,7 +171,7 @@ export function Services() {
       <SectionCard title={t("serviceBreakdown")}>
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
           <div className="min-h-[280px]">
-            <DonutChart data={serviceChartData} currency={currency} />
+            <DonutChart data={serviceChartData} currency={currency} onDatumClick={setSelectedService} />
           </div>
           <div className="rounded-lg border bg-muted/20 p-4">
             <div className="mb-4 flex items-center justify-between gap-3">
@@ -182,7 +185,12 @@ export function Services() {
               {topServices.map((row) => {
                 const pct = totalCost > 0 ? (row.value / totalCost) * 100 : 0
                 return (
-                  <div key={row.name} className="space-y-1.5">
+                  <button
+                    key={row.name}
+                    type="button"
+                    className="block w-full space-y-1.5 rounded-md p-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    onClick={() => setSelectedService({ name: row.name, value: row.value, color: row.color })}
+                  >
                     <div className="flex items-center justify-between gap-3 text-sm">
                       <span className="flex min-w-0 items-center gap-2">
                         <span className="size-2.5 shrink-0 rounded-sm" style={{ backgroundColor: row.color }} />
@@ -193,7 +201,7 @@ export function Services() {
                     <div className="h-2 overflow-hidden rounded-full bg-muted">
                       <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(pct, 100)}%` }} />
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
@@ -249,6 +257,18 @@ export function Services() {
           </div>
         </SectionCard>
       )}
+      <ServiceDetailSheet
+        open={selectedService !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedService(null)
+        }}
+        serviceName={selectedService?.name ?? null}
+        total={selectedService?.value}
+        rows={serviceDetails.data ?? []}
+        isLoading={serviceDetails.isLoading}
+        isError={serviceDetails.isError}
+        currency={currency}
+      />
     </div>
   )
 }

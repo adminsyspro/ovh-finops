@@ -410,6 +410,26 @@ const analysisOps = {
     `).all(fromDate, toDate);
   },
 
+  serviceDetails: (serviceType, fromDate, toDate) => {
+    const db = getDb();
+    return db.prepare(`
+      SELECT
+        b.date as bill_date,
+        b.id as bill_id,
+        COALESCE(d.domain, '—') as domain,
+        d.description,
+        ROUND(SUM(d.total_price), 2) as total,
+        COUNT(d.id) as line_count
+      FROM bill_details d
+      JOIN bills b ON d.bill_id = b.id
+      WHERE COALESCE(d.service_type, 'Other') = ?
+        AND b.date >= ? AND b.date <= ?
+      GROUP BY b.date, b.id, d.domain, d.description
+      HAVING total != 0
+      ORDER BY b.date DESC, total DESC
+    `).all(serviceType, fromDate, toDate);
+  },
+
   dailyTrend: (fromDate, toDate) => {
     const db = getDb();
     return db.prepare(`

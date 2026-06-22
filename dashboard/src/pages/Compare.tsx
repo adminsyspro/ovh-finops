@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { type ColumnDef } from "@tanstack/react-table"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
@@ -8,6 +8,7 @@ import {
   useByService,
   useByProject,
 } from "@/hooks/queries"
+import { getYearPeriods, isYearPeriodValue, type PeriodSelection } from "@/hooks/useSelectedMonth"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { DataTable } from "@/components/DataTable"
@@ -16,11 +17,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { formatMoney, formatMonthLabel } from "@/lib/format"
+import { formatMoney, formatMonthLabel, formatYearLabel } from "@/lib/format"
 import { cn } from "@/lib/utils"
 import { CalendarIcon } from "@phosphor-icons/react/dist/csr/Calendar"
 import { GitDiffIcon } from "@phosphor-icons/react/dist/csr/GitDiff"
@@ -42,38 +46,64 @@ type ProjectRow = {
   variation: number | null
 }
 
+function formatPeriodLabel(period: PeriodSelection | null, language: "fr" | "en") {
+  if (!period) return undefined
+  return isYearPeriodValue(period.value)
+    ? formatYearLabel(period.value, language)
+    : formatMonthLabel(period.value, language)
+}
+
+function pickOtherYear(
+  selectedYearValue: string,
+  yearPeriods: PeriodSelection[],
+  target: "a" | "b",
+) {
+  const selectedIndex = yearPeriods.findIndex((period) => period.value === selectedYearValue)
+  if (selectedIndex < 0) return null
+
+  // yearPeriods are sorted newest first. A is the reference period, B is the compared period.
+  const preferredIndex = target === "a" ? selectedIndex + 1 : selectedIndex - 1
+  const fallbackIndex = target === "a" ? selectedIndex - 1 : selectedIndex + 1
+  return yearPeriods[preferredIndex]?.value ?? yearPeriods[fallbackIndex]?.value ?? null
+}
+
 export function Compare() {
   const { t, language } = useLanguage()
 
   const monthsQuery = useMonths()
   const months = monthsQuery.data ?? []
+  const yearPeriods = useMemo(() => getYearPeriods(months), [months])
+  const periods: PeriodSelection[] = useMemo(
+    () => [...yearPeriods, ...months.map((m) => ({ ...m, kind: "month" as const }))],
+    [months, yearPeriods],
+  )
 
-  // Local state for selected month values (null = not yet initialised)
-  const [monthA, setMonthA] = useState<string | null>(null)
-  const [monthB, setMonthB] = useState<string | null>(null)
+  // Local state for selected period values (null = not yet initialised)
+  const [periodA, setPeriodA] = useState<string | null>(null)
+  const [periodB, setPeriodB] = useState<string | null>(null)
 
   // Initialise defaults once months load; also reset stale selections if a chosen
   // month is no longer present in the list (mirror MonthPicker invariant)
   useEffect(() => {
     if (months.length === 0) return
-    const values = months.map((m) => m.value)
+    const values = periods.map((p) => p.value)
 
     const defaultB = months[0]?.value ?? null
     const defaultA = months[1]?.value ?? months[0]?.value ?? null
 
-    setMonthA((prev) => {
+    setPeriodA((prev) => {
       if (prev === null) return defaultA
       return values.includes(prev) ? prev : defaultA
     })
-    setMonthB((prev) => {
+    setPeriodB((prev) => {
       if (prev === null) return defaultB
       return values.includes(prev) ? prev : defaultB
     })
-  }, [months])
+  }, [months, periods])
 
-  // Resolve month objects
-  const a = months.find((m) => m.value === monthA) ?? null
-  const b = months.find((m) => m.value === monthB) ?? null
+  // Resolve selected periods
+  const a = periods.find((p) => p.value === periodA) ?? null
+  const b = periods.find((p) => p.value === periodB) ?? null
 
   const config = useConfig()
   const currency = config.data?.currency ?? "EUR"
@@ -86,7 +116,28 @@ export function Compare() {
   const projA = useByProject(a?.from, a?.to)
   const projB = useByProject(b?.from, b?.to)
 
-  // Gate: months loading
+  const labelA = formatPeriodLabel(a, language)
+  const labelB = formatPeriodLabel(b, language)
+  const handlePeriodAChange = (value: string) => {
+    setPeriodA(value)
+    if (!isYearPeriodValue(value)) return
+
+    setPeriodB((current) => {
+      if (current && isYearPeriodValue(current) && current !== value) return current
+      return pickOtherYear(value, yearPeriods, "b") ?? current
+    })
+  }
+  const handlePeriodBChange = (value: string) => {
+    setPeriodB(value)
+    if (!isYearPeriodValue(value)) return
+
+    setPeriodA((current) => {
+      if (current && isYearPeriodValue(current) && current !== value) return current
+      return pickOtherYear(value, yearPeriods, "a") ?? current
+    })
+  }
+
+  // Gate: periods loading
   if (monthsQuery.isLoading) return <CompareSkeleton />
 
   // Gate: months error
@@ -229,16 +280,28 @@ export function Compare() {
           <span className="text-sm font-medium text-muted-foreground">
             {t("monthA")}
           </span>
-          <Select value={monthA ?? ""} onValueChange={setMonthA}>
+          <Select value={periodA ?? ""} onValueChange={handlePeriodAChange}>
             <SelectTrigger className="w-44">
-              <SelectValue />
+              <SelectValue>{labelA}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {months.map((m) => (
-                <SelectItem key={m.value} value={m.value}>
-                  {formatMonthLabel(m.value, language)}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>{t("years")}</SelectLabel>
+                {yearPeriods.map((year) => (
+                  <SelectItem key={year.value} value={year.value}>
+                    {formatYearLabel(year.value, language)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectSeparator />
+              <SelectGroup>
+                <SelectLabel>{t("months")}</SelectLabel>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {formatMonthLabel(m.value, language)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -251,16 +314,28 @@ export function Compare() {
           <span className="text-sm font-medium text-muted-foreground">
             {t("monthB")}
           </span>
-          <Select value={monthB ?? ""} onValueChange={setMonthB}>
+          <Select value={periodB ?? ""} onValueChange={handlePeriodBChange}>
             <SelectTrigger className="w-44">
-              <SelectValue />
+              <SelectValue>{labelB}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {months.map((m) => (
-                <SelectItem key={m.value} value={m.value}>
-                  {formatMonthLabel(m.value, language)}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                <SelectLabel>{t("years")}</SelectLabel>
+                {yearPeriods.map((year) => (
+                  <SelectItem key={year.value} value={year.value}>
+                    {formatYearLabel(year.value, language)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+              <SelectSeparator />
+              <SelectGroup>
+                <SelectLabel>{t("months")}</SelectLabel>
+                {months.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {formatMonthLabel(m.value, language)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
@@ -272,13 +347,13 @@ export function Compare() {
           icon={CalendarIcon}
           label={t("monthA")}
           value={formatMoney(tA, language, currency)}
-          sublabel={a ? formatMonthLabel(a.value, language) : undefined}
+          sublabel={labelA}
         />
         <KpiCard
           icon={CalendarIcon}
           label={t("monthB")}
           value={formatMoney(tB, language, currency)}
-          sublabel={b ? formatMonthLabel(b.value, language) : undefined}
+          sublabel={labelB}
         />
         <KpiCard
           icon={GitDiffIcon}

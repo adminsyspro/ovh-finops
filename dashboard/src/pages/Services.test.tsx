@@ -1,5 +1,6 @@
 import { vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { LanguageProvider } from "@/context/LanguageProvider"
 
 vi.mock("@/context/PeriodContext", () => ({
@@ -30,6 +31,24 @@ vi.mock("@/hooks/queries", () => {
       ]),
     ),
     useResourceTypeDetails: vi.fn(() => ok([])),
+    useServiceDetails: vi.fn(() => ok([
+      {
+        billDate: "2026-05-31",
+        billId: "FR123",
+        domain: "compute.example",
+        description: "Compute instance",
+        total: 400,
+        lineCount: 1,
+      },
+      {
+        billDate: "2026-05-31",
+        billId: "FR124",
+        domain: "storage.example",
+        description: "Archive storage",
+        total: 50,
+        lineCount: 1,
+      },
+    ])),
   }
 })
 
@@ -70,6 +89,18 @@ test("Services page: renders column headers", () => {
   wrap(<Services />)
   expect(screen.getByText("Type de ressource")).toBeInTheDocument()
   expect(screen.getByText("Total ressources")).toBeInTheDocument()
+})
+
+test("Services page: opens service detail sheet from service distribution", async () => {
+  wrap(<Services />)
+  await userEvent.click(screen.getAllByRole("button", { name: /Compute/ })[0])
+  expect(screen.getByText("Détail du service · Compute")).toBeInTheDocument()
+  expect(screen.getByText("compute.example")).toBeInTheDocument()
+  expect(screen.getByText("FR123")).toBeInTheDocument()
+  expect(screen.getByPlaceholderText("Rechercher une ligne")).toBeInTheDocument()
+  await userEvent.type(screen.getByPlaceholderText("Rechercher une ligne"), "archive")
+  expect(screen.queryByText("compute.example")).not.toBeInTheDocument()
+  expect(screen.getByText("storage.example")).toBeInTheDocument()
 })
 
 test("Services page: renders empty state when months list is empty", () => {

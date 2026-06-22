@@ -1,13 +1,15 @@
+import { useState } from "react"
 import { useLanguage } from "@/context/LanguageProvider"
 import {
-  useConfig, useSummary, useByService, useByResourceType, useExpiring,
+  useConfig, useSummary, useByService, useByResourceType, useExpiring, useServiceDetails,
 } from "@/hooks/queries"
 import { useSelectedMonth } from "@/hooks/useSelectedMonth"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { BudgetGauge } from "@/components/BudgetGauge"
 import { ExpiringAlerts } from "@/components/ExpiringAlerts"
-import { DonutChart } from "@/components/charts/DonutChart"
+import { DonutChart, type DonutDatum } from "@/components/charts/DonutChart"
+import { ServiceDetailSheet } from "@/components/ServiceDetailSheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import { formatMoney } from "@/lib/format"
 import { CloudIcon } from "@phosphor-icons/react/dist/csr/Cloud"
@@ -28,12 +30,14 @@ function OverviewSkeleton() {
 
 export function Overview() {
   const { t, language } = useLanguage()
+  const [selectedService, setSelectedService] = useState<DonutDatum | null>(null)
   const { monthsQuery, months, selected, previous, from, to } = useSelectedMonth()
 
   const summary = useSummary(from, to)
   const prevSummary = useSummary(previous?.from, previous?.to)
   const byService = useByService(from, to)
   const byResourceType = useByResourceType(from, to)
+  const serviceDetails = useServiceDetails(selectedService?.name, from, to)
   const expiring = useExpiring(30)
   const config = useConfig()
 
@@ -121,7 +125,7 @@ export function Overview() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <SectionCard title={t("serviceBreakdown")}>
-          <DonutChart data={byService.data ?? []} currency={currency} />
+          <DonutChart data={byService.data ?? []} currency={currency} onDatumClick={setSelectedService} />
         </SectionCard>
         <SectionCard title={t("resourceTypeBreakdown")}>
           <div className="min-h-[260px]">
@@ -137,6 +141,18 @@ export function Overview() {
         <BudgetGauge used={total} budget={config.data?.budget} currency={currency} />
         <ExpiringAlerts services={expiring.data ?? []} />
       </div>
+      <ServiceDetailSheet
+        open={selectedService !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedService(null)
+        }}
+        serviceName={selectedService?.name ?? null}
+        total={selectedService?.value}
+        rows={serviceDetails.data ?? []}
+        isLoading={serviceDetails.isLoading}
+        isError={serviceDetails.isError}
+        currency={currency}
+      />
     </div>
   )
 }

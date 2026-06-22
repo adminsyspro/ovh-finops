@@ -1,5 +1,6 @@
 import { vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { LanguageProvider } from "@/context/LanguageProvider"
 import * as queries from "@/hooks/queries"
 
@@ -11,6 +12,7 @@ vi.mock("@/hooks/queries", () => {
       ok([
         { value: "2026-05", label: "Mai 2026", from: "2026-05-01", to: "2026-05-31" },
         { value: "2026-04", label: "Avril 2026", from: "2026-04-01", to: "2026-04-30" },
+        { value: "2025-12", label: "Décembre 2025", from: "2025-12-01", to: "2025-12-31" },
       ]),
     ),
     useConfig: vi.fn(() => ok({ budget: 1000, currency: "EUR" })),
@@ -18,6 +20,8 @@ vi.mock("@/hooks/queries", () => {
       ok(
         from === "2026-05-01"
           ? { total: 500, cloudTotal: 400, nonCloudTotal: 100, dailyAverage: 16.1, billsCount: 3, projectsCount: 7, topProjects: [] }
+          : from === "2025-01-01"
+            ? { total: 3000, cloudTotal: 2400, nonCloudTotal: 600, dailyAverage: 8.2, billsCount: 12, projectsCount: 7, topProjects: [] }
           : { total: 400, cloudTotal: 320, nonCloudTotal: 80, dailyAverage: 13.3, billsCount: 2, projectsCount: 6, topProjects: [] },
       ),
     ),
@@ -25,6 +29,8 @@ vi.mock("@/hooks/queries", () => {
       ok(
         from === "2026-05-01"
           ? [{ name: "Compute", value: 500, color: "#111", detailsCount: 1 }]
+          : from === "2025-01-01"
+            ? [{ name: "Compute", value: 3000, color: "#333", detailsCount: 12 }]
           : [{ name: "Compute", value: 400, color: "#222", detailsCount: 1 }],
       ),
     ),
@@ -32,6 +38,8 @@ vi.mock("@/hooks/queries", () => {
       ok(
         from === "2026-05-01"
           ? [{ projectId: "p1", projectName: "Proj One", total: 500, detailsCount: 1 }]
+          : from === "2025-01-01"
+            ? [{ projectId: "p1", projectName: "Proj One", total: 3000, detailsCount: 12 }]
           : [{ projectId: "p1", projectName: "Proj One", total: 400, detailsCount: 1 }],
       ),
     ),
@@ -51,6 +59,7 @@ beforeEach(() => {
     ok([
       { value: "2026-05", label: "Mai 2026", from: "2026-05-01", to: "2026-05-31" },
       { value: "2026-04", label: "Avril 2026", from: "2026-04-01", to: "2026-04-30" },
+      { value: "2025-12", label: "Décembre 2025", from: "2025-12-01", to: "2025-12-31" },
     ]) as any,
   )
 })
@@ -85,6 +94,17 @@ test("Compare: renders section titles", () => {
   wrap(<Compare />)
   expect(screen.getByText("Comparaison par service")).toBeInTheDocument()
   expect(screen.getByText("Comparaison par projet")).toBeInTheDocument()
+})
+
+test("Compare: allows selecting a full year", async () => {
+  wrap(<Compare />)
+  await userEvent.click(screen.getAllByRole("combobox")[0])
+  await userEvent.click(screen.getByText("Année 2025"))
+  expect(screen.getAllByText("Année 2025").length).toBeGreaterThanOrEqual(1)
+  expect(screen.getAllByText("Année 2026").length).toBeGreaterThanOrEqual(1)
+  expect(screen.getAllByText(/3 000,00|3 000,00/).length).toBeGreaterThanOrEqual(1)
+  expect(queries.useSummary).toHaveBeenCalledWith("2025-01-01", "2025-12-31")
+  expect(queries.useSummary).toHaveBeenCalledWith("2026-01-01", "2026-12-31")
 })
 
 test("Compare: empty state when no months", () => {
