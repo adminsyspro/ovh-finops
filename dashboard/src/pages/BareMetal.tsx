@@ -12,12 +12,13 @@ import {
   useResourceTypeDetails,
 } from "@/hooks/queries"
 import { useSelectedMonth } from "@/hooks/useSelectedMonth"
-import { type DedicatedServer, type ResourceTypeBreakdown, type ResourceTypeDetail, type StorageService, type VpsInstance } from "@/services/api"
+import { type DedicatedServer, type ResourceTypeBreakdown, type StorageService, type VpsInstance } from "@/services/api"
 import { KpiCard } from "@/components/KpiCard"
 import { SectionCard } from "@/components/SectionCard"
 import { DataTable } from "@/components/DataTable"
-import { DonutChart } from "@/components/charts/DonutChart"
+import { DonutChart, type DonutDatum } from "@/components/charts/DonutChart"
 import { ExpiringAlerts } from "@/components/ExpiringAlerts"
+import { ResourceTypeDetailSheet } from "@/components/ResourceTypeDetailSheet"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -100,6 +101,14 @@ export function BareMetal() {
   const selectedResource = selectedType
     ? resourceRows.find((row) => row.resource_type === selectedType) ?? null
     : null
+  const openResourceDetail = (row: ResourceTypeBreakdown | DonutDatum) => {
+    if ("resource_type" in row) {
+      setSelectedType(row.resource_type)
+      return
+    }
+    const resource = resourceRows.find((item) => item.resource_type === row.id || item.name === row.name)
+    setSelectedType(resource?.resource_type ?? row.id ?? null)
+  }
 
   const serverCols: ColumnDef<DedicatedServer>[] = [
     { id: "name", header: t("name"), accessorFn: (row) => row.display_name || row.id },
@@ -154,16 +163,6 @@ export function BareMetal() {
     { accessorKey: "serviceCount", header: t("totalResources") },
   ]
 
-  const detailColumns: ColumnDef<ResourceTypeDetail>[] = [
-    { accessorKey: "domain", header: t("domain") },
-    { id: "description", header: t("description"), cell: ({ row }) => row.original.description ?? "—" },
-    {
-      accessorKey: "total",
-      header: t("amount"),
-      cell: ({ row }) => <div className="text-right">{formatMoney(row.original.total, language, currency)}</div>,
-    },
-  ]
-
   if (summary.isLoading || servers.isLoading || vps.isLoading || storage.isLoading || monthsQuery.isLoading) {
     return <BareMetalSkeleton />
   }
@@ -194,7 +193,11 @@ export function BareMetal() {
 
       <SectionCard title={t("bareMetalCostBreakdown")}>
         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
-          <DonutChart data={resourceRows.map((row) => ({ name: row.name, value: row.value, color: row.color }))} currency={currency} />
+          <DonutChart
+            data={resourceRows.map((row) => ({ id: row.resource_type, name: row.name, value: row.value, color: row.color }))}
+            currency={currency}
+            onDatumClick={openResourceDetail}
+          />
           <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-sm text-muted-foreground">{t("clickResourceType")}</p>
@@ -204,32 +207,24 @@ export function BareMetal() {
               columns={resourceTypeColumns}
               data={resourceRows}
               searchPlaceholder={t("resourceType")}
-              onRowClick={(row) => setSelectedType(row.resource_type)}
+              onRowClick={openResourceDetail}
             />
           </div>
         </div>
       </SectionCard>
 
-      {selectedType && (
-        <SectionCard title={selectedResource?.name ?? selectedType}>
-          <div className="space-y-4">
-            <div className="grid gap-3 rounded-lg border bg-muted/20 p-4 sm:grid-cols-3">
-              <div>
-                <p className="text-xs text-muted-foreground">{t("amount")}</p>
-                <p className="mt-1 text-sm font-semibold">{formatMoney(selectedResource?.value ?? 0, language, currency)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">{t("totalResources")}</p>
-                <p className="mt-1 text-sm font-semibold">{selectedResource?.serviceCount ?? 0}</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                <Badge variant="outline" className="rounded-md">{selectedResource?.detailsCount ?? 0} {t("billingLines")}</Badge>
-              </div>
-            </div>
-            <DataTable<ResourceTypeDetail, unknown> columns={detailColumns} data={resourceTypeDetails.data ?? []} searchPlaceholder={t("domain")} />
-          </div>
-        </SectionCard>
-      )}
+      <ResourceTypeDetailSheet
+        open={selectedType !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedType(null)
+        }}
+        title={selectedResource?.name ?? selectedType}
+        total={selectedResource?.value}
+        rows={resourceTypeDetails.data ?? []}
+        isLoading={resourceTypeDetails.isLoading}
+        isError={resourceTypeDetails.isError}
+        currency={currency}
+      />
 
       <SectionCard
         title={t("bareMetalInventory")}

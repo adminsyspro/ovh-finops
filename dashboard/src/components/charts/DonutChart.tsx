@@ -4,7 +4,7 @@ import { formatMoney } from "@/lib/format"
 import { useLanguage } from "@/context/LanguageProvider"
 import { cn } from "@/lib/utils"
 
-export type DonutDatum = { name: string; value: number; color: string }
+export type DonutDatum = { id?: string; name: string; value: number; color: string }
 
 export function DonutChart({
   data,

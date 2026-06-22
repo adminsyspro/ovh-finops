@@ -1,5 +1,6 @@
 import { vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { LanguageProvider } from "@/context/LanguageProvider"
 
 const ok = <T,>(data: T) => ({ data, isLoading: false, isError: false })
@@ -75,7 +76,10 @@ vi.mock("@/hooks/queries", () => ({
       { name: "Public Cloud", resource_type: "cloud_project", value: 999, color: "#3b82f6", detailsCount: 9, serviceCount: 4 },
     ]),
   ),
-  useResourceTypeDetails: vi.fn(() => ok([])),
+  useResourceTypeDetails: vi.fn(() => ok([
+    { domain: "ns1.example", description: "Dedicated server rental", total: 150, line_count: 3 },
+    { domain: "backup.example", description: "Backup storage", total: 25, line_count: 1 },
+  ])),
 }))
 
 import { BareMetal } from "./BareMetal"
@@ -90,4 +94,15 @@ test("BareMetal page: renders bare metal KPIs and inventory tabs", () => {
   expect(screen.getAllByText("150,00 €").length).toBeGreaterThan(0)
   expect(screen.getAllByText("Serveurs dédiés").length).toBeGreaterThanOrEqual(1)
   expect(screen.getByText("ns1")).toBeInTheDocument()
+})
+
+test("BareMetal page: opens resource type detail sheet", async () => {
+  wrap(<BareMetal />)
+  await userEvent.click(screen.getAllByText("Dedicated Servers")[0])
+  expect(screen.getByText("Détail du type de ressource · Dedicated Servers")).toBeInTheDocument()
+  expect(screen.getByText("ns1.example")).toBeInTheDocument()
+  expect(screen.getByPlaceholderText("Rechercher une ligne")).toBeInTheDocument()
+  await userEvent.type(screen.getByPlaceholderText("Rechercher une ligne"), "backup")
+  expect(screen.queryByText("ns1.example")).not.toBeInTheDocument()
+  expect(screen.getByText("backup.example")).toBeInTheDocument()
 })
