@@ -1,5 +1,6 @@
 import { vi } from "vitest"
 import { render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { LanguageProvider } from "@/context/LanguageProvider"
 
 vi.mock("@/context/PeriodContext", () => ({
@@ -29,7 +30,10 @@ vi.mock("@/hooks/queries", () => {
         },
       ]),
     ),
-    useResourceTypeDetails: vi.fn(() => ok([])),
+    useServiceDetails: vi.fn(() => ok([
+      { period: "2026-05-01", invoiceId: "FR1", domain: "compute.example", description: "Compute line", total: 400, lineCount: 1 },
+    ])),
+    useResourceTypePeriodDetails: vi.fn(() => ok([])),
   }
 })
 
@@ -70,6 +74,13 @@ test("Services page: renders column headers", () => {
   wrap(<Services />)
   expect(screen.getByText("Type de ressource")).toBeInTheDocument()
   expect(screen.getByText("Total ressources")).toBeInTheDocument()
+})
+
+test("Services page: opens service breakdown details", async () => {
+  wrap(<Services />)
+  await userEvent.click(screen.getAllByRole("button", { name: /Compute/ })[0])
+  expect(screen.getByText("Détail de la répartition · Compute")).toBeInTheDocument()
+  expect(screen.getByText("compute.example")).toBeInTheDocument()
 })
 
 test("Services page: renders empty state when months list is empty", () => {

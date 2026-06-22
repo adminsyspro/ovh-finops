@@ -27,6 +27,8 @@ vi.mock("@/hooks/queries", () => {
     useByService: vi.fn(() => ok([{ name: "Compute", value: 400, color: "#123456", detailsCount: 1 }])),
     useByProject: vi.fn(() => ok([{ projectId: "p1", projectName: "Proj One", total: 400, detailsCount: 1 }])),
     useByResourceType: vi.fn(() => ok([{ name: "Public Cloud", resource_type: "cloud_project", value: 400, color: "#abcdef", detailsCount: 1, serviceCount: 2 }])),
+    useServiceDetails: vi.fn(() => ok([])),
+    useResourceTypePeriodDetails: vi.fn(() => ok([])),
     useExpiring: vi.fn(() => ok([])),
   }
 })

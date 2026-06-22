@@ -34,6 +34,7 @@ export interface ProjectBreakdown { projectId: string; projectName: string; tota
 export interface ResourceTypeBreakdown { name: string; resource_type: string; value: number; color: string; detailsCount: number; serviceCount: number }
 export interface ExpiringService { id: string; display_name: string; type: string; expiration_date: string }
 export interface AppConfig { budget: number | null; currency: string }
+export interface BreakdownDetailRow { period: string; invoiceId: string; domain: string; description: string | null; total: number; lineCount: number }
 
 // Phase-3 interfaces (Consumption / Inventory / Billing)
 export interface ConsumptionCurrent { snapshot_date?: string; period_start?: string | null; period_end?: string | null; current_total: number; currency: string; source?: string; project_count?: number; details?: unknown }
@@ -131,6 +132,11 @@ export const fetchByProject = async (from: string, to: string): Promise<ProjectB
 
 export const fetchByService = async (from: string, to: string): Promise<ServiceBreakdown[]> => {
   const { data } = await api.get('/analysis/by-service', { params: { from, to } })
+  return data
+}
+
+export const fetchServiceDetails = async (service: string, from: string, to: string): Promise<BreakdownDetailRow[]> => {
+  const { data } = await api.get('/analysis/service-details', { params: { service, from, to } })
   return data
 }
 
@@ -295,6 +301,11 @@ export const fetchByResourceType = async (from: string, to: string): Promise<Res
 
 export const fetchResourceTypeDetails = async (type: string, from: string, to: string): Promise<ResourceTypeDetail[]> => {
   const { data } = await api.get('/analysis/resource-type-details', { params: { type, from, to } })
+  return data
+}
+
+export const fetchResourceTypePeriodDetails = async (type: string, from: string, to: string): Promise<BreakdownDetailRow[]> => {
+  const { data } = await api.get('/analysis/resource-type-period-details', { params: { type, from, to } })
   return data
 }
 
